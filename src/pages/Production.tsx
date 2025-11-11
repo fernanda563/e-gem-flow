@@ -47,10 +47,10 @@ const Production = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<ProductionFilters>({
-    estatusPiedra: "",
-    estatusMontura: "",
-    disenadorId: "",
-    joyeroId: "",
+    estatusPiedra: "all",
+    estatusMontura: "all",
+    disenadorId: "all",
+    joyeroId: "all",
     fechaDesde: undefined,
     fechaHasta: undefined,
   });
@@ -124,15 +124,15 @@ const Production = () => {
       }
 
       // Apply filters
-      if (filters.estatusPiedra) {
+      if (filters.estatusPiedra && filters.estatusPiedra !== "all") {
         filtered = filtered.filter((o) => o.estatus_piedra === filters.estatusPiedra);
       }
 
-      if (filters.estatusMontura) {
+      if (filters.estatusMontura && filters.estatusMontura !== "all") {
         filtered = filtered.filter((o) => o.estatus_montura === filters.estatusMontura);
       }
 
-      if (filters.disenadorId) {
+      if (filters.disenadorId && filters.disenadorId !== "all") {
         if (filters.disenadorId === "sin_asignar") {
           filtered = filtered.filter((o) => !o.disenador_id);
         } else {
@@ -140,7 +140,7 @@ const Production = () => {
         }
       }
 
-      if (filters.joyeroId) {
+      if (filters.joyeroId && filters.joyeroId !== "all") {
         if (filters.joyeroId === "sin_asignar") {
           filtered = filtered.filter((o) => !o.joyero_id);
         } else {
@@ -168,10 +168,10 @@ const Production = () => {
 
   const hasActiveFilters = () => {
     return (
-      filters.estatusPiedra ||
-      filters.estatusMontura ||
-      filters.disenadorId ||
-      filters.joyeroId ||
+      (filters.estatusPiedra && filters.estatusPiedra !== "all") ||
+      (filters.estatusMontura && filters.estatusMontura !== "all") ||
+      (filters.disenadorId && filters.disenadorId !== "all") ||
+      (filters.joyeroId && filters.joyeroId !== "all") ||
       filters.fechaDesde ||
       filters.fechaHasta
     );

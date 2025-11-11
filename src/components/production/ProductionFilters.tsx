@@ -120,20 +120,20 @@ export const ProductionFiltersComponent = ({
 
   const clearFilters = () => {
     onFiltersChange({
-      estatusPiedra: "",
-      estatusMontura: "",
-      disenadorId: "",
-      joyeroId: "",
+      estatusPiedra: "all",
+      estatusMontura: "all",
+      disenadorId: "all",
+      joyeroId: "all",
       fechaDesde: undefined,
       fechaHasta: undefined,
     });
   };
 
   const hasActiveFilters =
-    filters.estatusPiedra ||
-    filters.estatusMontura ||
-    filters.disenadorId ||
-    filters.joyeroId ||
+    (filters.estatusPiedra && filters.estatusPiedra !== "all") ||
+    (filters.estatusMontura && filters.estatusMontura !== "all") ||
+    (filters.disenadorId && filters.disenadorId !== "all") ||
+    (filters.joyeroId && filters.joyeroId !== "all") ||
     filters.fechaDesde ||
     filters.fechaHasta;
 
@@ -170,7 +170,7 @@ export const ProductionFiltersComponent = ({
                   <SelectValue placeholder="Todos los estados" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos los estados</SelectItem>
+                  <SelectItem value="all">Todos los estados</SelectItem>
                   {STONE_STATUSES.map((status) => (
                     <SelectItem key={status.value} value={status.value}>
                       {status.label}
@@ -193,7 +193,7 @@ export const ProductionFiltersComponent = ({
                   <SelectValue placeholder="Todos los estados" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos los estados</SelectItem>
+                  <SelectItem value="all">Todos los estados</SelectItem>
                   {MOUNTING_STATUSES.map((status) => (
                     <SelectItem key={status.value} value={status.value}>
                       {status.label}
@@ -216,7 +216,7 @@ export const ProductionFiltersComponent = ({
                   <SelectValue placeholder="Todos los diseñadores" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos los diseñadores</SelectItem>
+                  <SelectItem value="all">Todos los diseñadores</SelectItem>
                   <SelectItem value="sin_asignar">Sin asignar</SelectItem>
                   {disenadores.map((d) => (
                     <SelectItem key={d.id} value={d.id}>
@@ -240,7 +240,7 @@ export const ProductionFiltersComponent = ({
                   <SelectValue placeholder="Todos los joyeros" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos los joyeros</SelectItem>
+                  <SelectItem value="all">Todos los joyeros</SelectItem>
                   <SelectItem value="sin_asignar">Sin asignar</SelectItem>
                   {joyeros.map((j) => (
                     <SelectItem key={j.id} value={j.id}>
