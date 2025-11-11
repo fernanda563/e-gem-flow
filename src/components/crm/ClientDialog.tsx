@@ -61,6 +61,26 @@ function capitalizeFirstLetter(str: string): string {
     .join(' ');
 }
 
+// Helper function to format phone number as (555) 123-4567
+function formatPhoneNumber(value: string): string {
+  // Remove all non-digits
+  const cleaned = value.replace(/\D/g, '');
+  
+  // Apply formatting based on length
+  if (cleaned.length <= 3) {
+    return cleaned;
+  } else if (cleaned.length <= 6) {
+    return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3)}`;
+  } else {
+    return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6, 10)}`;
+  }
+}
+
+// Helper function to clean phone number (remove formatting)
+function cleanPhoneNumber(value: string): string {
+  return value.replace(/\D/g, '');
+}
+
 // Zod schema with validation and normalization
 const clientFormSchema = z.object({
   nombre: z
@@ -381,16 +401,18 @@ const ClientDialog = ({ open, onOpenChange, client, onSuccess }: ClientDialogPro
                       <Input
                         {...field}
                         type="tel"
-                        maxLength={10}
-                        placeholder="1234567890"
+                        placeholder="(555) 123-4567"
+                        value={formatPhoneNumber(field.value)}
                         onKeyPress={(e) => {
                           if (!/^\d$/.test(e.key)) {
                             e.preventDefault();
                           }
                         }}
                         onChange={(e) => {
-                          const cleaned = e.target.value.replace(/\D/g, '');
-                          field.onChange(cleaned);
+                          const cleaned = cleanPhoneNumber(e.target.value);
+                          if (cleaned.length <= 10) {
+                            field.onChange(cleaned);
+                          }
                         }}
                         disabled={loading}
                       />
@@ -410,16 +432,18 @@ const ClientDialog = ({ open, onOpenChange, client, onSuccess }: ClientDialogPro
                       <Input
                         {...field}
                         type="tel"
-                        maxLength={10}
-                        placeholder="1234567890"
+                        placeholder="(555) 123-4567"
+                        value={formatPhoneNumber(field.value || "")}
                         onKeyPress={(e) => {
                           if (!/^\d$/.test(e.key)) {
                             e.preventDefault();
                           }
                         }}
                         onChange={(e) => {
-                          const cleaned = e.target.value.replace(/\D/g, '');
-                          field.onChange(cleaned);
+                          const cleaned = cleanPhoneNumber(e.target.value);
+                          if (cleaned.length <= 10) {
+                            field.onChange(cleaned);
+                          }
                         }}
                         disabled={loading}
                       />
