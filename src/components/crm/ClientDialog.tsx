@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -43,7 +44,7 @@ import {
 } from "@/components/ui/form";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Upload, Trash2, Search, X } from "lucide-react";
+import { Loader2, Upload, Trash2, Search, X, Eye, Download } from "lucide-react";
 import type { Client } from "@/pages/CRM";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -138,6 +139,7 @@ interface ClientDialogProps {
 }
 
 const ClientDialog = ({ open, onOpenChange, client, onSuccess }: ClientDialogProps) => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [ineFile, setIneFile] = useState<File | null>(null);
@@ -319,6 +321,11 @@ const ClientDialog = ({ open, onOpenChange, client, onSuccess }: ClientDialogPro
     toast.info("Datos del cliente cargados. Puedes modificarlos si lo necesitas.");
   };
 
+  const handleViewClient = (clientId: string) => {
+    onOpenChange(false);
+    navigate(`/crm/${clientId}`);
+  };
+
   const handleDelete = async () => {
     if (!client) return;
 
@@ -461,19 +468,41 @@ const ClientDialog = ({ open, onOpenChange, client, onSuccess }: ClientDialogPro
                   Se encontraron {searchResults.length} cliente(s) con ese nombre:
                 </p>
                 {searchResults.map((result) => (
-                  <button
+                  <div
                     key={result.id}
-                    type="button"
-                    onClick={() => handleSelectExistingClient(result)}
-                    className="w-full text-left p-2 rounded hover:bg-background transition-colors"
+                    className="flex items-center justify-between gap-2 p-2 rounded hover:bg-background transition-colors"
                   >
-                    <div className="font-medium text-sm">
-                      {result.nombre} {result.apellido}
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm truncate">
+                        {result.nombre} {result.apellido}
+                      </div>
+                      <div className="text-xs text-muted-foreground truncate">
+                        {result.email} • {result.telefono_principal}
+                      </div>
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      {result.email} • {result.telefono_principal}
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleViewClient(result.id)}
+                        className="h-8 px-2"
+                      >
+                        <Eye className="h-3.5 w-3.5 mr-1" />
+                        Ver
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleSelectExistingClient(result)}
+                        className="h-8 px-2"
+                      >
+                        <Download className="h-3.5 w-3.5 mr-1" />
+                        Cargar
+                      </Button>
                     </div>
-                  </button>
+                  </div>
                 ))}
               </div>
             )}
