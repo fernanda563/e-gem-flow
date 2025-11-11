@@ -208,18 +208,18 @@ const CRM = () => {
         {/* Alphabet Filter */}
         <Card className="mb-6">
           <CardContent className="pt-6">
-            <div className="flex flex-col gap-3">
-              <span className="text-sm font-medium text-muted-foreground">
+            <div className="space-y-3">
+              <span className="text-sm font-medium text-muted-foreground block">
                 Filtrar por letra:
               </span>
-              <div className="overflow-x-auto -mx-6 px-6">
-                <div className="flex items-center gap-1 pb-2 min-w-max">
+              <div className="w-full overflow-x-auto">
+                <div className="flex items-center gap-1 pb-2 w-max">
                   {/* Botón "Todas" */}
                   <Button
                     variant={selectedLetter === null ? "default" : "ghost"}
                     size="sm"
                     onClick={() => setSelectedLetter(null)}
-                    className="h-8 px-3 flex-shrink-0"
+                    className="h-8 px-3 shrink-0"
                   >
                     Todas
                   </Button>
@@ -237,7 +237,7 @@ const CRM = () => {
                         size="sm"
                         onClick={() => setSelectedLetter(letter)}
                         disabled={!hasClients}
-                        className={`h-8 w-8 p-0 flex-shrink-0 ${
+                        className={`h-8 w-8 p-0 shrink-0 ${
                           !hasClients ? "opacity-30" : ""
                         }`}
                       >
