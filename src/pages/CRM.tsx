@@ -208,42 +208,44 @@ const CRM = () => {
         {/* Alphabet Filter */}
         <Card className="mb-6">
           <CardContent className="pt-6">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-muted-foreground whitespace-nowrap mr-2">
+            <div className="flex flex-col gap-3">
+              <span className="text-sm font-medium text-muted-foreground">
                 Filtrar por letra:
               </span>
-              <div className="flex items-center gap-1 overflow-x-auto pb-2">
-                {/* Botón "Todas" */}
-                <Button
-                  variant={selectedLetter === null ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setSelectedLetter(null)}
-                  className="h-8 px-3 min-w-[60px]"
-                >
-                  Todas
-                </Button>
-                
-                {/* Letras A-Z */}
-                {Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i)).map((letter) => {
-                  const hasClients = clients.some((client) =>
-                    client.nombre.toUpperCase().startsWith(letter)
-                  );
+              <div className="overflow-x-auto -mx-6 px-6">
+                <div className="flex items-center gap-1 pb-2 min-w-max">
+                  {/* Botón "Todas" */}
+                  <Button
+                    variant={selectedLetter === null ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setSelectedLetter(null)}
+                    className="h-8 px-3 flex-shrink-0"
+                  >
+                    Todas
+                  </Button>
                   
-                  return (
-                    <Button
-                      key={letter}
-                      variant={selectedLetter === letter ? "default" : "ghost"}
-                      size="sm"
-                      onClick={() => setSelectedLetter(letter)}
-                      disabled={!hasClients}
-                      className={`h-8 w-8 p-0 ${
-                        !hasClients ? "opacity-30" : ""
-                      }`}
-                    >
-                      {letter}
-                    </Button>
-                  );
-                })}
+                  {/* Letras A-Z */}
+                  {Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i)).map((letter) => {
+                    const hasClients = clients.some((client) =>
+                      client.nombre.toUpperCase().startsWith(letter)
+                    );
+                    
+                    return (
+                      <Button
+                        key={letter}
+                        variant={selectedLetter === letter ? "default" : "ghost"}
+                        size="sm"
+                        onClick={() => setSelectedLetter(letter)}
+                        disabled={!hasClients}
+                        className={`h-8 w-8 p-0 flex-shrink-0 ${
+                          !hasClients ? "opacity-30" : ""
+                        }`}
+                      >
+                        {letter}
+                      </Button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </CardContent>
