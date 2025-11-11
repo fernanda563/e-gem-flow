@@ -2,10 +2,38 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { User, ChevronDown, ChevronUp } from "lucide-react";
 import { StoneTimeline } from "./StoneTimeline";
 import { MountingTimeline } from "./MountingTimeline";
 import { AssignmentDialog } from "./AssignmentDialog";
+
+const STONE_STATUSES = [
+  "en_busqueda",
+  "piedra_comprada",
+  "piedra_transito_pobox",
+  "piedra_pobox",
+  "piedra_levant",
+  "piedra_con_disenador",
+  "piedra_en_taller",
+  "piedra_montada",
+];
+
+const MOUNTING_STATUSES = [
+  "en_espera",
+  "proceso_diseno",
+  "impresion_modelo",
+  "reimpresion_modelo",
+  "traslado_modelo",
+  "espera_taller",
+  "proceso_vaciado",
+  "pieza_terminada_taller",
+  "proceso_recoleccion",
+  "recolectado",
+  "entregado_oyamel",
+  "entregado_levant",
+  "no_aplica",
+];
 
 interface Order {
   id: string;
@@ -50,6 +78,19 @@ export const ProductionCard = ({ order, onUpdate }: ProductionCardProps) => {
     });
   };
 
+  const calculateProgress = (status: string | null, statuses: string[]) => {
+    if (!status) return 0;
+    const index = statuses.indexOf(status);
+    if (index === -1) return 0;
+    return ((index + 1) / statuses.length) * 100;
+  };
+
+  const stoneProgress = calculateProgress(order.estatus_piedra, STONE_STATUSES);
+  const mountingProgress = calculateProgress(
+    order.estatus_montura,
+    MOUNTING_STATUSES.filter((s) => s !== "no_aplica")
+  );
+
   return (
     <>
       <Card className="hover:shadow-md transition-shadow">
@@ -91,6 +132,24 @@ export const ProductionCard = ({ order, onUpdate }: ProductionCardProps) => {
                   <ChevronDown className="h-5 w-5" />
                 )}
               </Button>
+            </div>
+          </div>
+
+          {/* Progress Indicators */}
+          <div className="space-y-3 mt-4">
+            <div className="space-y-1">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-muted-foreground">Progreso Piedra</span>
+                <span className="font-medium">{Math.round(stoneProgress)}%</span>
+              </div>
+              <Progress value={stoneProgress} className="h-2" />
+            </div>
+            <div className="space-y-1">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-muted-foreground">Progreso Montura</span>
+                <span className="font-medium">{Math.round(mountingProgress)}%</span>
+              </div>
+              <Progress value={mountingProgress} className="h-2" />
             </div>
           </div>
         </CardHeader>
