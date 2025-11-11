@@ -12,6 +12,7 @@ import Orders from "./pages/Orders";
 import Production from "./pages/Production";
 import ProductionDashboard from "./pages/ProductionDashboard";
 import Users from "./pages/Users";
+import AuditLog from "./pages/AuditLog";
 import NotFound from "./pages/NotFound";
 import { DashboardLayout } from "./components/DashboardLayout";
 
@@ -33,6 +34,7 @@ const App = () => (
           <Route path="/production" element={<Production />} />
           <Route path="/production/dashboard" element={<ProductionDashboard />} />
           <Route path="/users" element={<Users />} />
+          <Route path="/audit-log" element={<AuditLog />} />
         </Route>
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />

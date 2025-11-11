@@ -8,6 +8,7 @@ import {
   LogOut,
   Shield,
   BarChart3,
+  FileText,
 } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
 import {
@@ -63,6 +64,12 @@ const menuItems = [
     title: "Gestión de Usuarios",
     url: "/users",
     icon: Shield,
+    adminOnly: true,
+  },
+  {
+    title: "Log de Auditoría",
+    url: "/audit-log",
+    icon: FileText,
     adminOnly: true,
   },
 ];
