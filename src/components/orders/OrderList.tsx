@@ -58,12 +58,11 @@ const OrderList = ({ orders, loading, onEdit }: OrderListProps) => {
                   <h3 className="text-xl font-semibold text-foreground">
                     {order.clients?.nombre} {order.clients?.apellido}
                   </h3>
-                  <span className="text-sm text-muted-foreground">
-                    {order.custom_id || `#${order.id.slice(0, 8)}`}
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    #{order.id.slice(0, 8)}
-                  </span>
+                  {order.custom_id && (
+                    <span className="text-sm font-medium text-muted-foreground">
+                      {order.custom_id}
+                    </span>
+                  )}
                   {getPaymentStatusBadge(order.estatus_pago)}
                   {getProductionStatus(order)}
                 </div>
