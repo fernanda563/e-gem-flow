@@ -19,10 +19,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Gem, DollarSign, Calendar, Trash2 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Gem, DollarSign, Calendar, Trash2, CalendarIcon } from "lucide-react";
 import { generateProspectTitle } from "./prospect-utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 import * as React from "react";
 
 interface Prospect {
@@ -62,6 +67,14 @@ export const ProspectDetailDialog = ({
   const [isEditing, setIsEditing] = React.useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
   const [estado, setEstado] = React.useState<string>(prospect.estado);
+  const [tipoAccesorio, setTipoAccesorio] = React.useState<string>(prospect.tipo_accesorio || "");
+  const [subtipoAccesorio, setSubtipoAccesorio] = React.useState<string>(prospect.subtipo_accesorio || "");
+  const [tipoMetal, setTipoMetal] = React.useState<string>(prospect.metal_tipo || "");
+  const [colorOro, setColorOro] = React.useState<string>(prospect.color_oro || "");
+  const [purezaOro, setPurezaOro] = React.useState<string>(prospect.pureza_oro || "");
+  const [incluyePiedra, setIncluyePiedra] = React.useState<string>(prospect.incluye_piedra || "");
+  const [tipoPiedra, setTipoPiedra] = React.useState<string>(prospect.tipo_piedra || "");
+  const [largoAprox, setLargoAprox] = React.useState<string>(prospect.largo_aprox || "");
   const [estiloAnillo, setEstiloAnillo] = React.useState<string>(prospect.estilo_anillo || "");
   const [importePrevisto, setImportePrevisto] = React.useState<string>(
     prospect.importe_previsto !== null ? String(prospect.importe_previsto) : ""
@@ -74,6 +87,14 @@ export const ProspectDetailDialog = ({
   const handleCancel = () => {
     setIsEditing(false);
     setEstado(prospect.estado);
+    setTipoAccesorio(prospect.tipo_accesorio || "");
+    setSubtipoAccesorio(prospect.subtipo_accesorio || "");
+    setTipoMetal(prospect.metal_tipo || "");
+    setColorOro(prospect.color_oro || "");
+    setPurezaOro(prospect.pureza_oro || "");
+    setIncluyePiedra(prospect.incluye_piedra || "");
+    setTipoPiedra(prospect.tipo_piedra || "");
+    setLargoAprox(prospect.largo_aprox || "");
     setEstiloAnillo(prospect.estilo_anillo || "");
     setImportePrevisto(prospect.importe_previsto !== null ? String(prospect.importe_previsto) : "");
     setFechaEntrega(prospect.fecha_entrega_deseada || "");
@@ -103,12 +124,20 @@ export const ProspectDetailDialog = ({
   const handleSave = async () => {
     const updates: any = {
       estado,
+      tipo_accesorio: tipoAccesorio || null,
+      subtipo_accesorio: subtipoAccesorio || null,
+      metal_tipo: tipoMetal || null,
+      color_oro: colorOro || null,
+      pureza_oro: purezaOro || null,
+      incluye_piedra: incluyePiedra || null,
+      tipo_piedra: tipoPiedra || null,
+      largo_aprox: largoAprox || null,
       estilo_anillo: estiloAnillo || null,
       observaciones: observaciones || null,
     };
 
-    // Convertir importe
-    const importeNum = importePrevisto.trim() === "" ? null : Number(importePrevisto.replace(/,/g, "."));
+    // Convertir importe (remove formatting)
+    const importeNum = importePrevisto.trim() === "" ? null : Number(importePrevisto.replace(/[$,]/g, ""));
     updates.importe_previsto = importeNum;
 
     // Fecha
@@ -142,6 +171,20 @@ export const ProspectDetailDialog = ({
       style: "currency",
       currency: "MXN",
     }).format(amount);
+  };
+
+  const formatCurrencyInput = (value: string): string => {
+    const numericValue = value.replace(/[^\d.]/g, '');
+    const parts = numericValue.split('.');
+    if (parts.length > 2) {
+      return formatCurrencyInput(parts[0] + '.' + parts.slice(1).join(''));
+    }
+    if (numericValue === '') return '';
+    const [integer, decimal] = numericValue.split('.');
+    const formattedInteger = integer.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return decimal !== undefined 
+      ? `$${formattedInteger}.${decimal}`
+      : `$${formattedInteger}`;
   };
 
   const formatDate = (dateString: string | null) => {
@@ -203,8 +246,85 @@ export const ProspectDetailDialog = ({
             </div>
           )}
 
+          {/* Tipo de Accesorio */}
+          <div>
+            <p className="text-xs font-medium text-muted-foreground mb-2">TIPO DE ACCESORIO</p>
+            {isEditing ? (
+              <Select value={tipoAccesorio} onValueChange={(value) => {
+                setTipoAccesorio(value);
+                setSubtipoAccesorio("");
+                if (value !== "anillo") setEstiloAnillo("");
+                if (value !== "collar" && value !== "pulsera") setLargoAprox("");
+              }}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="anillo">Anillo</SelectItem>
+                  <SelectItem value="collar">Collar</SelectItem>
+                  <SelectItem value="pulsera">Pulsera</SelectItem>
+                  <SelectItem value="arete">Arete</SelectItem>
+                  <SelectItem value="otro">Otro</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              <p className="font-medium capitalize">{prospect.tipo_accesorio || "N/A"}</p>
+            )}
+          </div>
+
+          {/* Subtipo - condicional según tipo */}
+          {tipoAccesorio && tipoAccesorio !== "otro" && (
+            <div>
+              <p className="text-xs font-medium text-muted-foreground mb-2">SUBTIPO / ESTILO</p>
+              {isEditing ? (
+                <Select value={subtipoAccesorio} onValueChange={setSubtipoAccesorio}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar subtipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {tipoAccesorio === "anillo" && (
+                      <>
+                        <SelectItem value="compromiso">Compromiso</SelectItem>
+                        <SelectItem value="matrimonio">Matrimonio</SelectItem>
+                        <SelectItem value="aniversario">Aniversario</SelectItem>
+                        <SelectItem value="casual">Casual</SelectItem>
+                        <SelectItem value="otro">Otro</SelectItem>
+                      </>
+                    )}
+                    {tipoAccesorio === "collar" && (
+                      <>
+                        <SelectItem value="cadena">Cadena</SelectItem>
+                        <SelectItem value="dije">Dije</SelectItem>
+                        <SelectItem value="collar_completo">Collar completo</SelectItem>
+                        <SelectItem value="gargantilla">Gargantilla</SelectItem>
+                      </>
+                    )}
+                    {tipoAccesorio === "pulsera" && (
+                      <>
+                        <SelectItem value="cadena">Cadena</SelectItem>
+                        <SelectItem value="brazalete">Brazalete</SelectItem>
+                        <SelectItem value="esclava">Esclava</SelectItem>
+                        <SelectItem value="charm">Charm</SelectItem>
+                      </>
+                    )}
+                    {tipoAccesorio === "arete" && (
+                      <>
+                        <SelectItem value="arracada">Arracada</SelectItem>
+                        <SelectItem value="boton">Botón</SelectItem>
+                        <SelectItem value="colgante">Colgante</SelectItem>
+                        <SelectItem value="argolla">Argolla</SelectItem>
+                      </>
+                    )}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <p className="font-medium capitalize">{prospect.subtipo_accesorio || "N/A"}</p>
+              )}
+            </div>
+          )}
+
           {/* Estilo de anillo - editable si aplica */}
-          {prospect.tipo_accesorio === "anillo" && prospect.incluye_piedra === "si" && (
+          {tipoAccesorio === "anillo" && incluyePiedra === "si" && (
             <div>
               <p className="text-xs font-medium text-muted-foreground mb-2">ESTILO DE ANILLO</p>
               {isEditing ? (
@@ -228,13 +348,58 @@ export const ProspectDetailDialog = ({
           )}
 
           {/* Sección de Metal */}
-          {prospect.metal_tipo && (
-            <div>
-              <p className="text-xs font-medium text-muted-foreground mb-3">METAL</p>
+          <div>
+            <p className="text-xs font-medium text-muted-foreground mb-3">METAL</p>
+            {isEditing ? (
+              <div className="space-y-3">
+                <Select value={tipoMetal} onValueChange={(value) => {
+                  setTipoMetal(value);
+                  if (value !== "oro") {
+                    setColorOro("");
+                    setPurezaOro("");
+                  }
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar tipo de metal" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="oro">Oro</SelectItem>
+                    <SelectItem value="plata">Plata</SelectItem>
+                    <SelectItem value="platino">Platino</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {tipoMetal === "oro" && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <Select value={colorOro} onValueChange={setColorOro}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Color" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="amarillo">Amarillo</SelectItem>
+                        <SelectItem value="blanco">Blanco</SelectItem>
+                        <SelectItem value="rosado">Rosado</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    <Select value={purezaOro} onValueChange={setPurezaOro}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pureza" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="10k">10k</SelectItem>
+                        <SelectItem value="14k">14k</SelectItem>
+                        <SelectItem value="18k">18k</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+            ) : (
               <div className="grid grid-cols-3 gap-4 text-sm">
                 <div>
                   <p className="text-muted-foreground mb-1">Tipo:</p>
-                  <p className="font-medium capitalize">{prospect.metal_tipo}</p>
+                  <p className="font-medium capitalize">{prospect.metal_tipo || "N/A"}</p>
                 </div>
                 {prospect.metal_tipo === "oro" && (
                   <>
@@ -249,28 +414,69 @@ export const ProspectDetailDialog = ({
                   </>
                 )}
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Sección de Piedra */}
-          {prospect.incluye_piedra === "si" && prospect.tipo_piedra && (
-            <div>
-              <p className="text-xs font-medium text-muted-foreground mb-3">PIEDRA</p>
-              <div className="text-sm">
-                <p className="text-muted-foreground mb-1">Tipo:</p>
-                <p className="font-medium capitalize">{prospect.tipo_piedra}</p>
-              </div>
-            </div>
-          )}
+          <div>
+            <p className="text-xs font-medium text-muted-foreground mb-3">PIEDRA</p>
+            {isEditing ? (
+              <div className="space-y-3">
+                <Select value={incluyePiedra} onValueChange={(value) => {
+                  setIncluyePiedra(value);
+                  if (value === "no") {
+                    setTipoPiedra("");
+                    setEstiloAnillo("");
+                  }
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="¿Incluye piedra?" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="si">Sí</SelectItem>
+                    <SelectItem value="no">No</SelectItem>
+                  </SelectContent>
+                </Select>
 
-          {/* Largo aproximado (para collares/pulseras) */}
-          {prospect.largo_aprox && (
-            <div>
-              <p className="text-xs font-medium text-muted-foreground mb-3">DIMENSIONES</p>
-              <div className="text-sm">
-                <p className="text-muted-foreground mb-1">Largo aproximado:</p>
-                <p className="font-medium">{prospect.largo_aprox}</p>
+                {incluyePiedra === "si" && (
+                  <Select value={tipoPiedra} onValueChange={setTipoPiedra}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Tipo de piedra" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="diamante">Diamante</SelectItem>
+                      <SelectItem value="gema">Gema</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
+            ) : (
+              <div className="text-sm">
+                <p className="text-muted-foreground mb-1">Incluye piedra:</p>
+                <p className="font-medium capitalize">{prospect.incluye_piedra || "N/A"}</p>
+                {prospect.incluye_piedra === "si" && prospect.tipo_piedra && (
+                  <>
+                    <p className="text-muted-foreground mb-1 mt-2">Tipo:</p>
+                    <p className="font-medium capitalize">{prospect.tipo_piedra}</p>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Largo aproximado - solo para collares/pulseras */}
+          {(tipoAccesorio === "collar" || tipoAccesorio === "pulsera") && (
+            <div>
+              <p className="text-xs font-medium text-muted-foreground mb-2">LARGO APROXIMADO</p>
+              {isEditing ? (
+                <Input
+                  value={largoAprox}
+                  onChange={(e) => setLargoAprox(e.target.value)}
+                  placeholder="Ej: 45cm, 18 pulgadas..."
+                />
+              ) : (
+                <p className="font-medium">{prospect.largo_aprox || "N/A"}</p>
+              )}
             </div>
           )}
 
@@ -287,7 +493,7 @@ export const ProspectDetailDialog = ({
                     <Input
                       type="text"
                       value={importePrevisto}
-                      onChange={(e) => setImportePrevisto(e.target.value)}
+                      onChange={(e) => setImportePrevisto(formatCurrencyInput(e.target.value))}
                       placeholder="$0.00"
                     />
                   ) : (
@@ -303,11 +509,32 @@ export const ProspectDetailDialog = ({
                     <span>Fecha de entrega</span>
                   </div>
                   {isEditing ? (
-                    <Input
-                      type="date"
-                      value={fechaEntrega}
-                      onChange={(e) => setFechaEntrega(e.target.value)}
-                    />
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !fechaEntrega && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {fechaEntrega ? format(new Date(fechaEntrega), "PPP", { locale: es }) : "Seleccionar"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <CalendarComponent
+                          mode="single"
+                          selected={fechaEntrega ? new Date(fechaEntrega) : undefined}
+                          onSelect={(date) => {
+                            setFechaEntrega(date?.toISOString().split('T')[0] || "");
+                          }}
+                          disabled={(date) => date < new Date()}
+                          initialFocus
+                          className="pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
                   ) : (
                     <p className="font-medium">
                       {formatDate(prospect.fecha_entrega_deseada)}
