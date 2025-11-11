@@ -94,6 +94,92 @@ export type Database = {
         }
         Relationships: []
       }
+      orders: {
+        Row: {
+          client_id: string
+          created_at: string
+          diamante_claridad: string | null
+          diamante_color: string | null
+          diamante_corte: string | null
+          diamante_forma: string | null
+          diamante_quilataje: number | null
+          disenador_id: string | null
+          estatus_montura: string | null
+          estatus_pago: string
+          estatus_piedra: string | null
+          forma_pago: string
+          gema_observaciones: string | null
+          id: string
+          importe_anticipo: number
+          joyero_id: string | null
+          metal_color: string | null
+          metal_pureza: string | null
+          metal_tipo: string
+          notas: string | null
+          piedra_tipo: string
+          precio_venta: number
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          diamante_claridad?: string | null
+          diamante_color?: string | null
+          diamante_corte?: string | null
+          diamante_forma?: string | null
+          diamante_quilataje?: number | null
+          disenador_id?: string | null
+          estatus_montura?: string | null
+          estatus_pago?: string
+          estatus_piedra?: string | null
+          forma_pago: string
+          gema_observaciones?: string | null
+          id?: string
+          importe_anticipo: number
+          joyero_id?: string | null
+          metal_color?: string | null
+          metal_pureza?: string | null
+          metal_tipo: string
+          notas?: string | null
+          piedra_tipo: string
+          precio_venta: number
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          diamante_claridad?: string | null
+          diamante_color?: string | null
+          diamante_corte?: string | null
+          diamante_forma?: string | null
+          diamante_quilataje?: number | null
+          disenador_id?: string | null
+          estatus_montura?: string | null
+          estatus_pago?: string
+          estatus_piedra?: string | null
+          forma_pago?: string
+          gema_observaciones?: string | null
+          id?: string
+          importe_anticipo?: number
+          joyero_id?: string | null
+          metal_color?: string | null
+          metal_pureza?: string | null
+          metal_tipo?: string
+          notas?: string | null
+          piedra_tipo?: string
+          precio_venta?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       prospects: {
         Row: {
           client_id: string
