@@ -15,7 +15,8 @@ import {
   Gem,
   ShoppingCart,
   FileText,
-  Loader2
+  Loader2,
+  Plus
 } from "lucide-react";
 import { toast } from "sonner";
 import { ClientTimeline } from "@/components/client-detail/ClientTimeline";
@@ -23,6 +24,7 @@ import { AppointmentsHistory } from "@/components/client-detail/AppointmentsHist
 import { ProspectsHistory } from "@/components/client-detail/ProspectsHistory";
 import { RemindersHistory } from "@/components/client-detail/RemindersHistory";
 import { OrdersHistory } from "@/components/client-detail/OrdersHistory";
+import ProspectDialog from "@/components/crm/ProspectDialog";
 
 interface Client {
   id: string;
@@ -42,6 +44,8 @@ const ClientDetail = () => {
   const [client, setClient] = useState<Client | null>(null);
   const [loading, setLoading] = useState(true);
   const [downloadingINE, setDownloadingINE] = useState(false);
+  const [showProspectDialog, setShowProspectDialog] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     if (clientId) {
@@ -234,7 +238,13 @@ const ClientDetail = () => {
           </TabsContent>
 
           <TabsContent value="prospects" className="mt-6">
-            <ProspectsHistory clientId={client.id} />
+            <div className="flex justify-end mb-4">
+              <Button onClick={() => setShowProspectDialog(true)} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Nuevo Proyecto
+              </Button>
+            </div>
+            <ProspectsHistory key={refreshKey} clientId={client.id} />
           </TabsContent>
 
           <TabsContent value="reminders" className="mt-6">
@@ -245,6 +255,17 @@ const ClientDetail = () => {
             <OrdersHistory clientId={client.id} />
           </TabsContent>
         </Tabs>
+
+        {/* Diálogo de nuevo proyecto */}
+        <ProspectDialog
+          open={showProspectDialog}
+          onOpenChange={setShowProspectDialog}
+          client={client}
+          onSuccess={() => {
+            setRefreshKey(prev => prev + 1);
+            toast.success("Proyecto registrado exitosamente");
+          }}
+        />
       </div>
     </div>
   );
