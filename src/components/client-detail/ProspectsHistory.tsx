@@ -47,7 +47,7 @@ export const ProspectsHistory = ({ clientId }: ProspectsHistoryProps) => {
       setProspects(data || []);
     } catch (error) {
       console.error("Error fetching prospects:", error);
-      toast.error("Error al cargar las wish lists");
+      toast.error("Error al cargar los proyectos");
     } finally {
       setLoading(false);
     }
@@ -96,7 +96,7 @@ export const ProspectsHistory = ({ clientId }: ProspectsHistoryProps) => {
       <Card>
         <CardContent className="py-12 text-center">
           <Gem className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <p className="text-muted-foreground">No hay wish lists registradas</p>
+          <p className="text-muted-foreground">No hay proyectos registrados</p>
         </CardContent>
       </Card>
     );

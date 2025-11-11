@@ -110,16 +110,16 @@ const Dashboard = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground">
-                Administra tu cartera de clientes, agenda citas y realiza seguimiento de wish lists.
-              </p>
+          <p className="text-muted-foreground">
+            Administra tu cartera de clientes, agenda citas y realiza seguimiento de proyectos.
+          </p>
               <div className="mt-4 pt-4 border-t border-border">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Total clientes:</span>
                   <span className="font-semibold text-foreground">248</span>
                 </div>
                 <div className="flex justify-between text-sm mt-2">
-                  <span className="text-muted-foreground">Wish lists activas:</span>
+                  <span className="text-muted-foreground">Proyectos activos:</span>
                   <span className="font-semibold text-accent">32</span>
                 </div>
               </div>
