@@ -33,6 +33,7 @@ export interface Order {
   estatus_piedra: string;
   estatus_montura: string;
   notas?: string;
+  comprobantes_pago?: string[];
   created_at: string;
   clients?: {
     nombre: string;
@@ -100,8 +101,14 @@ const Orders = () => {
       toast.error("Error al cargar órdenes");
       console.error(error);
     } else {
-      setOrders(data || []);
-      setFilteredOrders(data || []);
+      const ordersWithParsedReceipts = (data || []).map(order => ({
+        ...order,
+        comprobantes_pago: Array.isArray(order.comprobantes_pago) 
+          ? order.comprobantes_pago 
+          : []
+      })) as Order[];
+      setOrders(ordersWithParsedReceipts);
+      setFilteredOrders(ordersWithParsedReceipts);
     }
     setLoading(false);
   };

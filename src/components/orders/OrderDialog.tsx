@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Upload, X, Plus } from "lucide-react";
+import { Loader2, Upload, X, Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import type { Order } from "@/pages/Orders";
@@ -393,6 +393,82 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess, onOpenClientDialog 
 
   const handlePrevious = () => {
     setCurrentStep((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleDelete = async () => {
+    if (!order) return;
+
+    const confirmDelete = window.confirm(
+      "¿Estás seguro de que deseas eliminar esta orden?\n\n" +
+      "Esta acción:\n" +
+      "• Eliminará la orden permanentemente\n" +
+      "• Eliminará todos los comprobantes de pago asociados\n" +
+      "• No se puede deshacer\n\n" +
+      "¿Deseas continuar?"
+    );
+
+    if (!confirmDelete) return;
+
+    setLoading(true);
+
+    try {
+      // 1. Eliminar archivos de comprobantes de pago del Storage
+      if (order.comprobantes_pago && Array.isArray(order.comprobantes_pago)) {
+        for (const url of order.comprobantes_pago) {
+          try {
+            const urlObj = new URL(url);
+            const pathSegments = urlObj.pathname.split('/');
+            const bucketIndex = pathSegments.indexOf('payment-receipts');
+            if (bucketIndex !== -1) {
+              const filePath = pathSegments.slice(bucketIndex + 1).join('/');
+              
+              const { error: storageError } = await supabase.storage
+                .from('payment-receipts')
+                .remove([filePath]);
+
+              if (storageError) {
+                console.error("Error al eliminar archivo:", storageError);
+              }
+            }
+          } catch (urlError) {
+            console.error("Error al procesar URL de comprobante:", urlError);
+          }
+        }
+      }
+
+      // 2. Intentar eliminar carpeta completa del order_id en storage
+      try {
+        const { data: files } = await supabase.storage
+          .from('payment-receipts')
+          .list(order.id);
+
+        if (files && files.length > 0) {
+          const filePaths = files.map(file => `${order.id}/${file.name}`);
+          await supabase.storage
+            .from('payment-receipts')
+            .remove(filePaths);
+        }
+      } catch (cleanupError) {
+        console.error("Error en limpieza de carpeta:", cleanupError);
+      }
+
+      // 3. Eliminar la orden de la base de datos
+      const { error: deleteError } = await supabase
+        .from("orders")
+        .delete()
+        .eq("id", order.id);
+
+      if (deleteError) throw deleteError;
+
+      toast.success("Orden eliminada exitosamente");
+      onSuccess();
+      onOpenChange(false);
+    } catch (error: any) {
+      console.error("Error al eliminar orden:", error);
+      toast.error(error.message || "Error al eliminar la orden");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -1040,19 +1116,33 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess, onOpenClientDialog 
             )}
 
           <div className="flex justify-between gap-3 pt-6 mt-6 border-t">
-            <div>
-              {currentStep > 1 && (
+            {/* Lado izquierdo: Eliminar o Anterior */}
+            <div className="flex gap-3">
+              {order ? (
                 <Button
                   type="button"
-                  variant="outline"
-                  onClick={handlePrevious}
+                  variant="destructive"
+                  onClick={handleDelete}
                   disabled={loading}
                 >
-                  Anterior
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Eliminar Orden
                 </Button>
+              ) : (
+                currentStep > 1 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handlePrevious}
+                    disabled={loading}
+                  >
+                    Anterior
+                  </Button>
+                )
               )}
             </div>
 
+            {/* Lado derecho: Cancelar y Siguiente/Guardar */}
             <div className="flex gap-3">
               <Button
                 type="button"
