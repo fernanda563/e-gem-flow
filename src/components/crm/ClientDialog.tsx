@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -16,10 +15,70 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, Upload } from "lucide-react";
 import type { Client } from "@/pages/CRM";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+// Helper function to capitalize first letter of each word
+function capitalizeFirstLetter(str: string): string {
+  return str
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}
+
+// Zod schema with validation and normalization
+const clientFormSchema = z.object({
+  nombre: z
+    .string()
+    .min(1, "El nombre es obligatorio")
+    .max(100, "El nombre no puede exceder 100 caracteres")
+    .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, "El nombre solo puede contener letras")
+    .transform(capitalizeFirstLetter),
+  
+  apellido: z
+    .string()
+    .min(1, "El apellido es obligatorio")
+    .max(100, "El apellido no puede exceder 100 caracteres")
+    .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, "El apellido solo puede contener letras")
+    .transform(capitalizeFirstLetter),
+  
+  email: z
+    .string()
+    .min(1, "El correo electrónico es obligatorio")
+    .email("Formato de correo electrónico inválido")
+    .max(255, "El correo no puede exceder 255 caracteres")
+    .transform((val) => val.toLowerCase()),
+  
+  telefono_principal: z
+    .string()
+    .min(1, "El teléfono principal es obligatorio")
+    .regex(/^\d{10}$/, "El teléfono debe tener exactamente 10 dígitos"),
+  
+  telefono_adicional: z
+    .string()
+    .regex(/^\d{10}$/, "El teléfono debe tener exactamente 10 dígitos")
+    .optional()
+    .or(z.literal("")),
+  
+  fuente_contacto: z
+    .string()
+    .min(1, "Debe seleccionar cómo se enteró de nosotros"),
+});
+
+type ClientFormValues = z.infer<typeof clientFormSchema>;
 
 interface ClientDialogProps {
   open: boolean;
@@ -31,19 +90,24 @@ interface ClientDialogProps {
 const ClientDialog = ({ open, onOpenChange, client, onSuccess }: ClientDialogProps) => {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [formData, setFormData] = useState({
-    nombre: "",
-    apellido: "",
-    email: "",
-    telefono_principal: "",
-    telefono_adicional: "",
-    fuente_contacto: "",
-  });
   const [ineFile, setIneFile] = useState<File | null>(null);
 
+  const form = useForm<ClientFormValues>({
+    resolver: zodResolver(clientFormSchema),
+    mode: "onChange",
+    defaultValues: {
+      nombre: "",
+      apellido: "",
+      email: "",
+      telefono_principal: "",
+      telefono_adicional: "",
+      fuente_contacto: "",
+    },
+  });
+
   useEffect(() => {
-    if (client) {
-      setFormData({
+    if (client && open) {
+      form.reset({
         nombre: client.nombre,
         apellido: client.apellido,
         email: client.email,
@@ -51,8 +115,8 @@ const ClientDialog = ({ open, onOpenChange, client, onSuccess }: ClientDialogPro
         telefono_adicional: client.telefono_adicional || "",
         fuente_contacto: client.fuente_contacto || "",
       });
-    } else {
-      setFormData({
+    } else if (!client && open) {
+      form.reset({
         nombre: "",
         apellido: "",
         email: "",
@@ -62,7 +126,7 @@ const ClientDialog = ({ open, onOpenChange, client, onSuccess }: ClientDialogPro
       });
       setIneFile(null);
     }
-  }, [client, open]);
+  }, [client, open, form]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -106,19 +170,7 @@ const ClientDialog = ({ open, onOpenChange, client, onSuccess }: ClientDialogPro
     return data.publicUrl;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!formData.nombre.trim() || !formData.apellido.trim() || !formData.telefono_principal.trim() || !formData.email.trim()) {
-      toast.error("Por favor completa todos los campos obligatorios");
-      return;
-    }
-
-    if (!formData.fuente_contacto) {
-      toast.error("Por favor selecciona cómo se enteró de nosotros");
-      return;
-    }
-
+  const onSubmit = async (values: ClientFormValues) => {
     setLoading(true);
 
     try {
@@ -133,7 +185,7 @@ const ClientDialog = ({ open, onOpenChange, client, onSuccess }: ClientDialogPro
         const { error } = await supabase
           .from("clients")
           .update({
-            ...formData,
+            ...values,
             documento_id_url: documentUrl,
           })
           .eq("id", client.id);
@@ -144,7 +196,14 @@ const ClientDialog = ({ open, onOpenChange, client, onSuccess }: ClientDialogPro
         // Create new client
         const { data: newClient, error: insertError } = await supabase
           .from("clients")
-          .insert([formData])
+          .insert([{
+            nombre: values.nombre,
+            apellido: values.apellido,
+            email: values.email,
+            telefono_principal: values.telefono_principal,
+            telefono_adicional: values.telefono_adicional || null,
+            fuente_contacto: values.fuente_contacto,
+          }])
           .select()
           .single();
 
@@ -165,6 +224,7 @@ const ClientDialog = ({ open, onOpenChange, client, onSuccess }: ClientDialogPro
 
       onSuccess();
       onOpenChange(false);
+      form.reset();
     } catch (error: any) {
       toast.error(error.message || "Error al guardar cliente");
       console.error(error);
@@ -187,147 +247,215 @@ const ClientDialog = ({ open, onOpenChange, client, onSuccess }: ClientDialogPro
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="nombre">Nombre *</Label>
-              <Input
-                id="nombre"
-                value={formData.nombre}
-                onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                required
-                disabled={loading}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="nombre"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nombre *</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        onKeyPress={(e) => {
+                          if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]$/.test(e.key)) {
+                            e.preventDefault();
+                          }
+                        }}
+                        disabled={loading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="apellido"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Apellido *</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        onKeyPress={(e) => {
+                          if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]$/.test(e.key)) {
+                            e.preventDefault();
+                          }
+                        }}
+                        disabled={loading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="apellido">Apellido *</Label>
-              <Input
-                id="apellido"
-                value={formData.apellido}
-                onChange={(e) => setFormData({ ...formData, apellido: e.target.value })}
-                required
-                disabled={loading}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="email">Correo Electrónico *</Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              required
-              disabled={loading}
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Correo Electrónico *</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="email"
+                      placeholder="ejemplo@correo.com"
+                      disabled={loading}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="telefono_principal">Teléfono Principal *</Label>
-              <Input
-                id="telefono_principal"
-                type="tel"
-                value={formData.telefono_principal}
-                onChange={(e) =>
-                  setFormData({ ...formData, telefono_principal: e.target.value })
-                }
-                required
-                disabled={loading}
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="telefono_principal"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Teléfono Principal *</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="tel"
+                        maxLength={10}
+                        placeholder="1234567890"
+                        onKeyPress={(e) => {
+                          if (!/^\d$/.test(e.key)) {
+                            e.preventDefault();
+                          }
+                        }}
+                        onChange={(e) => {
+                          const cleaned = e.target.value.replace(/\D/g, '');
+                          field.onChange(cleaned);
+                        }}
+                        disabled={loading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="telefono_adicional"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Teléfono Adicional</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="tel"
+                        maxLength={10}
+                        placeholder="1234567890"
+                        onKeyPress={(e) => {
+                          if (!/^\d$/.test(e.key)) {
+                            e.preventDefault();
+                          }
+                        }}
+                        onChange={(e) => {
+                          const cleaned = e.target.value.replace(/\D/g, '');
+                          field.onChange(cleaned);
+                        }}
+                        disabled={loading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="telefono_adicional">Teléfono Adicional</Label>
-              <Input
-                id="telefono_adicional"
-                type="tel"
-                value={formData.telefono_adicional}
-                onChange={(e) =>
-                  setFormData({ ...formData, telefono_adicional: e.target.value })
-                }
-                disabled={loading}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="fuente_contacto">¿Cómo se enteró de nosotros? *</Label>
-            <Select
-              value={formData.fuente_contacto}
-              onValueChange={(value) =>
-                setFormData({ ...formData, fuente_contacto: value })
-              }
-              disabled={loading}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Seleccione una opción" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Facebook">Facebook</SelectItem>
-                <SelectItem value="Instagram">Instagram</SelectItem>
-                <SelectItem value="TikTok">TikTok</SelectItem>
-                <SelectItem value="Recomendación">Recomendación</SelectItem>
-                <SelectItem value="Tienda física">Tienda física</SelectItem>
-                <SelectItem value="Google">Google</SelectItem>
-                <SelectItem value="Otro">Otro</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="ine">INE (PDF)</Label>
-            <div className="flex items-center gap-2">
-              <Input
-                id="ine"
-                type="file"
-                accept="application/pdf"
-                onChange={handleFileChange}
-                disabled={loading || uploading}
-                className="flex-1"
-              />
-              {ineFile && (
-                <span className="text-sm text-muted-foreground">
-                  {ineFile.name}
-                </span>
+            <FormField
+              control={form.control}
+              name="fuente_contacto"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>¿Cómo se enteró de nosotros? *</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    disabled={loading}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccione una opción" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Facebook">Facebook</SelectItem>
+                      <SelectItem value="Instagram">Instagram</SelectItem>
+                      <SelectItem value="TikTok">TikTok</SelectItem>
+                      <SelectItem value="Recomendación">Recomendación</SelectItem>
+                      <SelectItem value="Tienda física">Tienda física</SelectItem>
+                      <SelectItem value="Google">Google</SelectItem>
+                      <SelectItem value="Otro">Otro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
               )}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Máximo 5MB. Solo archivos PDF.
-            </p>
-          </div>
+            />
 
-          <div className="flex justify-end gap-3 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={loading}
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              disabled={loading || uploading}
-              className="bg-accent hover:bg-accent/90 text-accent-foreground"
-            >
-              {loading || uploading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {uploading ? "Subiendo archivo..." : "Guardando..."}
-                </>
-              ) : (
-                <>
-                  <Upload className="mr-2 h-4 w-4" />
-                  {client ? "Actualizar" : "Crear"} Cliente
-                </>
-              )}
-            </Button>
-          </div>
-        </form>
+            <div className="space-y-2">
+              <FormLabel htmlFor="ine">INE (PDF)</FormLabel>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="ine"
+                  type="file"
+                  accept="application/pdf"
+                  onChange={handleFileChange}
+                  disabled={loading || uploading}
+                  className="flex-1"
+                />
+                {ineFile && (
+                  <span className="text-sm text-muted-foreground">
+                    {ineFile.name}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Máximo 5MB. Solo archivos PDF.
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                disabled={loading}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={loading || uploading || !form.formState.isValid}
+                className="bg-accent hover:bg-accent/90 text-accent-foreground"
+              >
+                {loading || uploading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {uploading ? "Subiendo archivo..." : "Guardando..."}
+                  </>
+                ) : (
+                  <>
+                    <Upload className="mr-2 h-4 w-4" />
+                    {client ? "Actualizar" : "Crear"} Cliente
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
