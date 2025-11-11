@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import PhoneInput from 'react-phone-number-input';
-import 'react-phone-number-input/style.css';
+import { PhoneInput } from "@/components/ui/phone-input";
 import {
   Dialog,
   DialogContent,
@@ -613,12 +612,11 @@ const ClientDialog = ({ open, onOpenChange, client, onSuccess }: ClientDialogPro
                     <FormLabel>Teléfono Principal *</FormLabel>
                     <FormControl>
                       <PhoneInput
-                        international
-                        defaultCountry="MX"
                         value={field.value}
                         onChange={field.onChange}
                         disabled={loading}
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        defaultCountryCode="+52"
+                        placeholder="5551234567"
                       />
                     </FormControl>
                     <FormMessage />
@@ -634,12 +632,11 @@ const ClientDialog = ({ open, onOpenChange, client, onSuccess }: ClientDialogPro
                     <FormLabel>Teléfono Adicional</FormLabel>
                     <FormControl>
                       <PhoneInput
-                        international
-                        defaultCountry="MX"
                         value={field.value}
                         onChange={field.onChange}
                         disabled={loading}
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        defaultCountryCode="+52"
+                        placeholder="5551234567"
                       />
                     </FormControl>
                     <FormMessage />
