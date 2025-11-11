@@ -249,6 +249,9 @@ export type Database = {
           fecha_entrega_deseada: string | null
           id: string
           importe_previsto: number | null
+          incluye_piedra: string | null
+          largo_aprox: string | null
+          metal_tipo: string | null
           observaciones: string | null
           pureza_oro: string | null
           subtipo_accesorio: string | null
@@ -265,6 +268,9 @@ export type Database = {
           fecha_entrega_deseada?: string | null
           id?: string
           importe_previsto?: number | null
+          incluye_piedra?: string | null
+          largo_aprox?: string | null
+          metal_tipo?: string | null
           observaciones?: string | null
           pureza_oro?: string | null
           subtipo_accesorio?: string | null
@@ -281,6 +287,9 @@ export type Database = {
           fecha_entrega_deseada?: string | null
           id?: string
           importe_previsto?: number | null
+          incluye_piedra?: string | null
+          largo_aprox?: string | null
+          metal_tipo?: string | null
           observaciones?: string | null
           pureza_oro?: string | null
           subtipo_accesorio?: string | null

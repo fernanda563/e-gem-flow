@@ -33,6 +33,7 @@ export interface Client {
   total_orders?: number;
   active_orders?: number;
   total_debt?: number;
+  active_prospects?: number;
 }
 
 const CRM = () => {
@@ -101,6 +102,19 @@ const CRM = () => {
           };
         }
 
+        // Obtener prospectos activos
+        const { data: prospects, error: prospectsError } = await supabase
+          .from("prospects")
+          .select("id, estado")
+          .eq("client_id", client.id)
+          .eq("estado", "activo");
+
+        if (prospectsError) {
+          console.error("Error al cargar prospectos del cliente:", prospectsError);
+        }
+
+        const activeProspects = prospects?.length || 0;
+
         // Calcular estadísticas
         const totalOrders = orders?.length || 0;
         const activeOrders = orders?.filter(
@@ -118,6 +132,7 @@ const CRM = () => {
           total_orders: totalOrders,
           active_orders: activeOrders,
           total_debt: totalDebt,
+          active_prospects: activeProspects,
         };
       })
     );

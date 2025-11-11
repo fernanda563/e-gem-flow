@@ -95,6 +95,16 @@ const ClientList = ({
                     </span>
                   </Badge>
                   
+                  {/* Badge de Prospectos Activos */}
+                  {Number(client.active_prospects ?? 0) > 0 && (
+                    <Badge variant="outline" className="flex items-center gap-1.5 shrink-0 text-warning border-warning">
+                      <Gem className="h-3 w-3" />
+                      <span className="text-xs">
+                        {client.active_prospects} {client.active_prospects === 1 ? 'prospecto' : 'prospectos'}
+                      </span>
+                    </Badge>
+                  )}
+                  
                   {client.documento_id_url && (
                     <Badge variant="secondary" className="shrink-0">INE registrada</Badge>
                   )}
