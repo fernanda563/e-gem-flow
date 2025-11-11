@@ -603,12 +603,12 @@ const ClientDialog = ({ open, onOpenChange, client, onSuccess }: ClientDialogPro
               )}
             />
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="telefono_principal"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex flex-col">
                     <FormLabel>Teléfono Principal *</FormLabel>
                     <FormControl>
                       <PhoneInput
@@ -628,7 +628,7 @@ const ClientDialog = ({ open, onOpenChange, client, onSuccess }: ClientDialogPro
                 control={form.control}
                 name="telefono_adicional"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex flex-col">
                     <FormLabel>Teléfono Adicional</FormLabel>
                     <FormControl>
                       <PhoneInput
