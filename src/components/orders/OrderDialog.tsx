@@ -20,7 +20,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Upload, X } from "lucide-react";
 import type { Order } from "@/pages/Orders";
 import type { Client } from "@/pages/CRM";
 
@@ -33,14 +33,18 @@ interface OrderDialogProps {
 
 const OrderDialog = ({ open, onOpenChange, order, onSuccess }: OrderDialogProps) => {
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [clients, setClients] = useState<Client[]>([]);
 
   // Financial data
   const [selectedClientId, setSelectedClientId] = useState("");
   const [precioVenta, setPrecioVenta] = useState("");
   const [importeAnticipo, setImporteAnticipo] = useState("");
+  const [anticipoError, setAnticipoError] = useState("");
   const [formaPago, setFormaPago] = useState("");
   const [estatusPago, setEstatusPago] = useState("anticipo_recibido");
+  const [paymentReceipts, setPaymentReceipts] = useState<File[]>([]);
+  const [uploadedReceiptUrls, setUploadedReceiptUrls] = useState<string[]>([]);
 
   // Metal data
   const [metalTipo, setMetalTipo] = useState<"oro" | "plata" | "platino">("oro");
@@ -94,6 +98,7 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess }: OrderDialogProps)
     setSelectedClientId("");
     setPrecioVenta("");
     setImporteAnticipo("");
+    setAnticipoError("");
     setFormaPago("");
     setEstatusPago("anticipo_recibido");
     setMetalTipo("oro");
@@ -107,6 +112,8 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess }: OrderDialogProps)
     setDiamanteForma("");
     setGemaObservaciones("");
     setNotas("");
+    setPaymentReceipts([]);
+    setUploadedReceiptUrls([]);
   };
 
   const fetchClients = async () => {
@@ -115,6 +122,52 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess }: OrderDialogProps)
       .select("*")
       .order("nombre");
     if (data) setClients(data);
+  };
+
+  const handleReceiptUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const validFiles = files.filter(file => {
+      const isValidType = file.type === "application/pdf" || file.type.startsWith("image/");
+      const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB
+      if (!isValidType) {
+        toast.error(`${file.name}: Solo se permiten imágenes y PDFs`);
+        return false;
+      }
+      if (!isValidSize) {
+        toast.error(`${file.name}: El archivo no debe superar 10MB`);
+        return false;
+      }
+      return true;
+    });
+    setPaymentReceipts(prev => [...prev, ...validFiles]);
+  };
+
+  const removeReceipt = (index: number) => {
+    setPaymentReceipts(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadReceipts = async (orderId: string) => {
+    const uploadedUrls: string[] = [];
+    
+    for (const file of paymentReceipts) {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${orderId}_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `${orderId}/${fileName}`;
+
+      const { error } = await supabase.storage
+        .from('payment-receipts')
+        .upload(filePath, file);
+
+      if (error) throw error;
+
+      const { data } = supabase.storage
+        .from('payment-receipts')
+        .getPublicUrl(filePath);
+
+      uploadedUrls.push(data.publicUrl);
+    }
+    
+    return uploadedUrls;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -133,6 +186,16 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess }: OrderDialogProps)
     setLoading(true);
 
     try {
+      let receiptUrls = uploadedReceiptUrls;
+      
+      // Upload receipts if this is a new order with files
+      if (paymentReceipts.length > 0) {
+        setUploading(true);
+        const tempOrderId = order?.id || crypto.randomUUID();
+        receiptUrls = await uploadReceipts(tempOrderId);
+        setUploading(false);
+      }
+
       const orderData: any = {
         client_id: selectedClientId,
         precio_venta: parseFloat(precioVenta),
@@ -144,6 +207,7 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess }: OrderDialogProps)
         metal_color: metalTipo === "oro" ? metalColor : null,
         piedra_tipo: piedraTipo,
         notas: notas || null,
+        comprobantes_pago: receiptUrls,
       };
 
       if (piedraTipo === "diamante") {
@@ -254,11 +318,23 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess }: OrderDialogProps)
                     step="0.01"
                     min="0"
                     value={importeAnticipo}
-                    onChange={(e) => setImporteAnticipo(e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setImporteAnticipo(value);
+                      
+                      if (precioVenta && parseFloat(value) > parseFloat(precioVenta)) {
+                        setAnticipoError("El anticipo no puede ser mayor al precio de venta");
+                      } else {
+                        setAnticipoError("");
+                      }
+                    }}
                     required
                     disabled={loading}
                     placeholder="0.00"
                   />
+                  {anticipoError && (
+                    <p className="text-sm text-destructive">{anticipoError}</p>
+                  )}
                 </div>
               </div>
 
@@ -300,6 +376,42 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess }: OrderDialogProps)
                   </p>
                 </div>
               )}
+
+              <div className="space-y-2 mt-4">
+                <Label>Comprobantes de Pago</Label>
+                <Input
+                  type="file"
+                  accept="image/jpeg,image/png,image/jpg,application/pdf"
+                  multiple
+                  onChange={handleReceiptUpload}
+                  disabled={loading || uploading}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Sube imágenes (JPG, PNG) o PDFs de los comprobantes. Máximo 10MB por archivo.
+                </p>
+                
+                {paymentReceipts.length > 0 && (
+                  <div className="space-y-2 mt-2">
+                    {paymentReceipts.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between p-2 bg-muted rounded">
+                        <div className="flex items-center gap-2">
+                          <Upload className="h-4 w-4" />
+                          <span className="text-sm">{file.name}</span>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeReceipt(index)}
+                          disabled={loading || uploading}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </TabsContent>
 
             {/* Tab 2: Metal */}
@@ -382,7 +494,7 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess }: OrderDialogProps)
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>Forma *</Label>
+                      <Label>Corte *</Label>
                       <Select
                         value={diamanteForma}
                         onValueChange={setDiamanteForma}
@@ -392,16 +504,19 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess }: OrderDialogProps)
                           <SelectValue placeholder="Seleccionar" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="redondo">Redondo</SelectItem>
-                          <SelectItem value="esmeralda">Esmeralda</SelectItem>
-                          <SelectItem value="radiante">Radiante</SelectItem>
-                          <SelectItem value="marqui">Marquí</SelectItem>
-                          <SelectItem value="oval">Oval</SelectItem>
+                          <SelectItem value="redondo">Redondo (Brilliant)</SelectItem>
                           <SelectItem value="princesa">Princesa</SelectItem>
-                          <SelectItem value="cojin">Cojín</SelectItem>
+                          <SelectItem value="esmeralda">Esmeralda</SelectItem>
+                          <SelectItem value="asscher">Asscher</SelectItem>
+                          <SelectItem value="marquisa">Marquisa</SelectItem>
+                          <SelectItem value="oval">Oval</SelectItem>
+                          <SelectItem value="radiante">Radiante</SelectItem>
                           <SelectItem value="pera">Pera</SelectItem>
                           <SelectItem value="corazon">Corazón</SelectItem>
-                          <SelectItem value="asscher">Asscher</SelectItem>
+                          <SelectItem value="cojin">Cojín (Cushion)</SelectItem>
+                          <SelectItem value="baguette">Baguette</SelectItem>
+                          <SelectItem value="trilliant">Trilliant</SelectItem>
+                          <SelectItem value="rose">Rose Cut</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -423,32 +538,82 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess }: OrderDialogProps)
                   <div className="grid grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label>Color</Label>
-                      <Input
+                      <Select
                         value={diamanteColor}
-                        onChange={(e) => setDiamanteColor(e.target.value)}
+                        onValueChange={setDiamanteColor}
                         disabled={loading}
-                        placeholder="Ej: D, E, F..."
-                      />
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="D">D (Incoloro)</SelectItem>
+                          <SelectItem value="E">E (Incoloro)</SelectItem>
+                          <SelectItem value="F">F (Incoloro)</SelectItem>
+                          <SelectItem value="G">G (Casi Incoloro)</SelectItem>
+                          <SelectItem value="H">H (Casi Incoloro)</SelectItem>
+                          <SelectItem value="I">I (Casi Incoloro)</SelectItem>
+                          <SelectItem value="J">J (Casi Incoloro)</SelectItem>
+                          <SelectItem value="K">K (Débilmente Amarillo)</SelectItem>
+                          <SelectItem value="L">L (Débilmente Amarillo)</SelectItem>
+                          <SelectItem value="M">M (Débilmente Amarillo)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        D es el mejor (incoloro)
+                      </p>
                     </div>
 
                     <div className="space-y-2">
                       <Label>Claridad</Label>
-                      <Input
+                      <Select
                         value={diamanteClaridad}
-                        onChange={(e) => setDiamanteClaridad(e.target.value)}
+                        onValueChange={setDiamanteClaridad}
                         disabled={loading}
-                        placeholder="Ej: IF, VVS1..."
-                      />
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="FL">FL - Flawless</SelectItem>
+                          <SelectItem value="IF">IF - Internally Flawless</SelectItem>
+                          <SelectItem value="VVS1">VVS1 - Very Very Slightly Included 1</SelectItem>
+                          <SelectItem value="VVS2">VVS2 - Very Very Slightly Included 2</SelectItem>
+                          <SelectItem value="VS1">VS1 - Very Slightly Included 1</SelectItem>
+                          <SelectItem value="VS2">VS2 - Very Slightly Included 2</SelectItem>
+                          <SelectItem value="SI1">SI1 - Slightly Included 1</SelectItem>
+                          <SelectItem value="SI2">SI2 - Slightly Included 2</SelectItem>
+                          <SelectItem value="I1">I1 - Included 1</SelectItem>
+                          <SelectItem value="I2">I2 - Included 2</SelectItem>
+                          <SelectItem value="I3">I3 - Included 3</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        FL es el mejor (sin defectos)
+                      </p>
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Corte</Label>
-                      <Input
+                      <Label>Calidad del Corte</Label>
+                      <Select
                         value={diamanteCorte}
-                        onChange={(e) => setDiamanteCorte(e.target.value)}
+                        onValueChange={setDiamanteCorte}
                         disabled={loading}
-                        placeholder="Ej: Excellent..."
-                      />
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Excellent">Excellent (Excelente)</SelectItem>
+                          <SelectItem value="Very Good">Very Good (Muy Bueno)</SelectItem>
+                          <SelectItem value="Good">Good (Bueno)</SelectItem>
+                          <SelectItem value="Fair">Fair (Regular)</SelectItem>
+                          <SelectItem value="Poor">Poor (Pobre)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        Afecta el brillo del diamante
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -494,13 +659,13 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess }: OrderDialogProps)
             </Button>
             <Button
               type="submit"
-              disabled={loading}
+              disabled={loading || uploading}
               className="bg-accent hover:bg-accent/90 text-accent-foreground"
             >
-              {loading ? (
+              {loading || uploading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Guardando...
+                  {uploading ? "Subiendo comprobantes..." : "Guardando..."}
                 </>
               ) : (
                 <>{order ? "Actualizar Orden" : "Crear Orden"}</>

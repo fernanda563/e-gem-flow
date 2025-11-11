@@ -97,6 +97,7 @@ export type Database = {
       orders: {
         Row: {
           client_id: string
+          comprobantes_pago: Json | null
           created_at: string
           diamante_claridad: string | null
           diamante_color: string | null
@@ -122,6 +123,7 @@ export type Database = {
         }
         Insert: {
           client_id: string
+          comprobantes_pago?: Json | null
           created_at?: string
           diamante_claridad?: string | null
           diamante_color?: string | null
@@ -147,6 +149,7 @@ export type Database = {
         }
         Update: {
           client_id?: string
+          comprobantes_pago?: Json | null
           created_at?: string
           diamante_claridad?: string | null
           diamante_color?: string | null

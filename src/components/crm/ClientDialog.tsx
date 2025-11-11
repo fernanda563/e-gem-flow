@@ -108,6 +108,17 @@ const ClientDialog = ({ open, onOpenChange, client, onSuccess }: ClientDialogPro
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!formData.nombre.trim() || !formData.apellido.trim() || !formData.telefono_principal.trim() || !formData.email.trim()) {
+      toast.error("Por favor completa todos los campos obligatorios");
+      return;
+    }
+
+    if (!formData.fuente_contacto) {
+      toast.error("Por favor selecciona cómo se enteró de nosotros");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -243,13 +254,14 @@ const ClientDialog = ({ open, onOpenChange, client, onSuccess }: ClientDialogPro
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="fuente_contacto">¿Cómo se enteró de nosotros?</Label>
+            <Label htmlFor="fuente_contacto">¿Cómo se enteró de nosotros? *</Label>
             <Select
               value={formData.fuente_contacto}
               onValueChange={(value) =>
                 setFormData({ ...formData, fuente_contacto: value })
               }
               disabled={loading}
+              required
             >
               <SelectTrigger>
                 <SelectValue placeholder="Seleccione una opción" />
