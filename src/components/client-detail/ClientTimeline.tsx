@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, Gem, Bell, ShoppingCart, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { ProspectDetailDialog } from "./ProspectDetailDialog";
+import { ProspectCard } from "./ProspectCard";
 import { cn } from "@/lib/utils";
 
 interface Prospect {
@@ -200,51 +201,59 @@ export const ClientTimeline = ({ clientId }: ClientTimelineProps) => {
   return (
     <>
       <div className="space-y-4">
-        {events.map((event, index) => (
-          <Card 
-            key={event.id} 
-            className={cn(
-              "relative",
-              event.type === "prospect" && "cursor-pointer hover:shadow-lg transition-shadow"
-            )}
-            onClick={() => {
-              if (event.type === "prospect" && event.prospectData) {
-                setSelectedProspect(event.prospectData);
-              }
-            }}
-          >
-          {index !== events.length - 1 && (
-            <div className="absolute left-8 top-16 bottom-0 w-0.5 bg-border -mb-4" />
-          )}
-          <CardContent className="pt-6">
-            <div className="flex gap-4">
-              <div className={`p-3 rounded-full ${getTypeColor(event.type)} flex-shrink-0 h-fit`}>
-                {getIcon(event.type)}
+        {events.map((event, index) => {
+          // Si es proyecto, usar ProspectCard
+          if (event.type === "prospect" && event.prospectData) {
+            return (
+              <div key={event.id} className="relative">
+                {index !== events.length - 1 && (
+                  <div className="absolute left-8 top-full h-4 w-0.5 bg-border" />
+                )}
+                <ProspectCard
+                  prospect={event.prospectData}
+                  onClick={() => setSelectedProspect(event.prospectData!)}
+                />
               </div>
-              <div className="flex-1">
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <h4 className="font-semibold">{event.title}</h4>
-                    <p className="text-sm text-muted-foreground">{event.description}</p>
+            );
+          }
+
+          // Otros eventos con la tarjeta original
+          return (
+            <Card key={event.id} className="relative">
+              {index !== events.length - 1 && (
+                <div className="absolute left-8 top-16 bottom-0 w-0.5 bg-border -mb-4" />
+              )}
+              <CardContent className="pt-6">
+                <div className="flex gap-4">
+                  <div className={`p-3 rounded-full ${getTypeColor(event.type)} flex-shrink-0 h-fit`}>
+                    {getIcon(event.type)}
                   </div>
-                  {event.status && (
-                    <Badge variant="outline">{event.status}</Badge>
-                  )}
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <h4 className="font-semibold">{event.title}</h4>
+                        <p className="text-sm text-muted-foreground">{event.description}</p>
+                      </div>
+                      {event.status && (
+                        <Badge variant="outline">{event.status}</Badge>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {formatDate(event.date)}
+                    </p>
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {formatDate(event.date)}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
 
     <ProspectDetailDialog
       prospect={selectedProspect}
       open={!!selectedProspect}
       onOpenChange={(open) => !open && setSelectedProspect(null)}
+      onSaved={() => fetchTimeline()}
     />
     </>
   );

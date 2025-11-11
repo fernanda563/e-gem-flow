@@ -44,6 +44,7 @@ export const ProspectDetailDialog = ({
   prospect,
   open,
   onOpenChange,
+  onSaved,
 }: ProspectDetailDialogProps) => {
   if (!prospect) return null;
 
@@ -97,13 +98,10 @@ export const ProspectDetailDialog = ({
 
     toast.success("Proyecto actualizado");
     setIsEditing(false);
-    // Notificar al padre para refrescar
+    if (onSaved && data) {
+      onSaved(data);
+    }
     onOpenChange(false);
-    // @ts-expect-error optional
-    typeof ({} as any) !== "undefined" && (typeof ({} as any));
-    // llamar callback si existe
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    (typeof ({} as any) !== "undefined", (props as any));
   };
 
 
@@ -141,25 +139,67 @@ export const ProspectDetailDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex items-start justify-between">
-            <div>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
               <DialogTitle className="text-2xl capitalize">
-                {prospect.tipo_accesorio || "Tipo no especificado"}
-                {prospect.subtipo_accesorio && ` - ${prospect.subtipo_accesorio}`}
+                {generateProspectTitle(prospect)}
               </DialogTitle>
-              {prospect.estilo_anillo && (
-                <p className="text-sm text-muted-foreground mt-1 capitalize">
-                  Estilo: {prospect.estilo_anillo.replace(/_/g, ' ')}
-                </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge className={getStatusColor(prospect.estado)}>
+                {isEditing ? estado : prospect.estado}
+              </Badge>
+              {!isEditing && (
+                <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+                  Editar
+                </Button>
               )}
             </div>
-            <Badge className={getStatusColor(prospect.estado)}>
-              {prospect.estado}
-            </Badge>
           </div>
         </DialogHeader>
 
         <div className="space-y-6 mt-4">
+          {/* Estado - editable */}
+          {isEditing && (
+            <div>
+              <p className="text-xs font-medium text-muted-foreground mb-2">ESTADO</p>
+              <Select value={estado} onValueChange={setEstado}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="activo">Activo</SelectItem>
+                  <SelectItem value="convertido">Convertido</SelectItem>
+                  <SelectItem value="perdido">Perdido</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Estilo de anillo - editable si aplica */}
+          {prospect.tipo_accesorio === "anillo" && prospect.incluye_piedra === "si" && (
+            <div>
+              <p className="text-xs font-medium text-muted-foreground mb-2">ESTILO DE ANILLO</p>
+              {isEditing ? (
+                <Select value={estiloAnillo} onValueChange={setEstiloAnillo}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar estilo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="solitario">Solitario</SelectItem>
+                    <SelectItem value="3_piedras">3 Piedras</SelectItem>
+                    <SelectItem value="piedra_lateral">Piedra lateral</SelectItem>
+                    <SelectItem value="aureola">Aureola</SelectItem>
+                    <SelectItem value="two_stone">Two Stone</SelectItem>
+                    <SelectItem value="otro">Otro</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <p className="font-medium capitalize">{prospect.estilo_anillo?.replace(/_/g, ' ') || "N/A"}</p>
+              )}
+            </div>
+          )}
+
           {/* Sección de Metal */}
           {prospect.metal_tipo && (
             <div>
@@ -208,43 +248,77 @@ export const ProspectDetailDialog = ({
           )}
 
           {/* Información financiera y fecha */}
-          {(prospect.importe_previsto || prospect.fecha_entrega_deseada) && (
+          {(prospect.importe_previsto || prospect.fecha_entrega_deseada || isEditing) && (
             <div className="pt-4 border-t">
               <div className="grid grid-cols-2 gap-4">
-                {prospect.importe_previsto && (
-                  <div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                      <DollarSign className="h-4 w-4" />
-                      <span>Importe previsto</span>
-                    </div>
+                <div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                    <DollarSign className="h-4 w-4" />
+                    <span>Importe previsto</span>
+                  </div>
+                  {isEditing ? (
+                    <Input
+                      type="text"
+                      value={importePrevisto}
+                      onChange={(e) => setImportePrevisto(e.target.value)}
+                      placeholder="$0.00"
+                    />
+                  ) : (
                     <p className="font-semibold text-lg">
                       {formatCurrency(prospect.importe_previsto)}
                     </p>
-                  </div>
-                )}
+                  )}
+                </div>
 
-                {prospect.fecha_entrega_deseada && (
-                  <div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                      <Calendar className="h-4 w-4" />
-                      <span>Fecha de entrega</span>
-                    </div>
+                <div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                    <Calendar className="h-4 w-4" />
+                    <span>Fecha de entrega</span>
+                  </div>
+                  {isEditing ? (
+                    <Input
+                      type="date"
+                      value={fechaEntrega}
+                      onChange={(e) => setFechaEntrega(e.target.value)}
+                    />
+                  ) : (
                     <p className="font-medium">
                       {formatDate(prospect.fecha_entrega_deseada)}
                     </p>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
           )}
 
           {/* Observaciones */}
-          {prospect.observaciones && (
+          {(prospect.observaciones || isEditing) && (
             <div className="pt-4 border-t">
               <p className="text-xs font-medium text-muted-foreground mb-2">OBSERVACIONES</p>
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                {prospect.observaciones}
-              </p>
+              {isEditing ? (
+                <Textarea
+                  value={observaciones}
+                  onChange={(e) => setObservaciones(e.target.value)}
+                  placeholder="Observaciones adicionales..."
+                  rows={3}
+                />
+              ) : (
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                  {prospect.observaciones}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Botones de edición */}
+          {isEditing && (
+            <div className="flex gap-2 justify-end pt-4 border-t">
+              <Button variant="outline" onClick={handleCancel}>
+                Cancelar
+              </Button>
+              <Button onClick={handleSave}>
+                Guardar cambios
+              </Button>
             </div>
           )}
 
