@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Gem, DollarSign, Calendar, Loader2 } from "lucide-react";
+import { Gem, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { ProspectDetailDialog } from "./ProspectDetailDialog";
+import { ProspectCard } from "./ProspectCard";
 
 interface Prospect {
   id: string;
@@ -107,113 +108,20 @@ export const ProspectsHistory = ({ clientId }: ProspectsHistoryProps) => {
   return (
     <>
       <div className="grid gap-4 md:grid-cols-2">
-        {prospects.map((prospect) => (
-          <Card 
-            key={prospect.id}
-            className="cursor-pointer hover:shadow-lg transition-shadow"
-            onClick={() => setSelectedProspect(prospect)}
-          >
-            <CardHeader>
-            <div className="flex items-start justify-between">
-              <div>
-                <CardTitle className="text-lg capitalize">
-                  {prospect.tipo_accesorio || "Tipo no especificado"}
-                  {prospect.subtipo_accesorio && ` - ${prospect.subtipo_accesorio}`}
-                </CardTitle>
-                {prospect.estilo_anillo && (
-                  <p className="text-sm text-muted-foreground mt-1 capitalize">
-                    Estilo: {prospect.estilo_anillo.replace(/_/g, ' ')}
-                  </p>
-                )}
-              </div>
-              <Badge className={getStatusColor(prospect.estado)}>
-                {prospect.estado}
-              </Badge>
-            </div>
-          </CardHeader>
-          
-          <CardContent className="space-y-4">
-            {/* Sección de Metal */}
-            {prospect.metal_tipo && (
-              <div>
-                <p className="text-xs font-medium text-muted-foreground mb-2">METAL</p>
-                <div className="grid grid-cols-3 gap-2 text-sm">
-                  <div>
-                    <p className="text-muted-foreground">Tipo:</p>
-                    <p className="font-medium capitalize">{prospect.metal_tipo}</p>
-                  </div>
-                  {prospect.metal_tipo === "oro" && (
-                    <>
-                      <div>
-                        <p className="text-muted-foreground">Color:</p>
-                        <p className="font-medium capitalize">{prospect.color_oro || "N/A"}</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground">Pureza:</p>
-                        <p className="font-medium">{prospect.pureza_oro || "N/A"}</p>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-            )}
-            
-            {/* Sección de Piedra */}
-            {prospect.incluye_piedra === "si" && prospect.tipo_piedra && (
-              <div>
-                <p className="text-xs font-medium text-muted-foreground mb-2">PIEDRA</p>
-                <div className="text-sm">
-                  <p className="text-muted-foreground">Tipo:</p>
-                  <p className="font-medium capitalize">{prospect.tipo_piedra}</p>
-                </div>
-              </div>
-            )}
-            
-            {/* Largo aproximado (para collares/pulseras) */}
-            {prospect.largo_aprox && (
-              <div className="text-sm">
-                <p className="text-muted-foreground">Largo aproximado:</p>
-                <p className="font-medium">{prospect.largo_aprox}</p>
-              </div>
-            )}
-            
-            {/* Información financiera y fecha */}
-            {(prospect.importe_previsto || prospect.fecha_entrega_deseada) && (
-              <div className="flex flex-wrap gap-3 pt-2 border-t">
-                {prospect.importe_previsto && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">
-                      {formatCurrency(prospect.importe_previsto)}
-                    </span>
-                  </div>
-                )}
-                
-                {prospect.fecha_entrega_deseada && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Calendar className="h-4 w-4" />
-                    <span>Entrega: {formatDate(prospect.fecha_entrega_deseada)}</span>
-                  </div>
-                )}
-              </div>
-            )}
-            
-            {/* Observaciones */}
-            {prospect.observaciones && (
-              <div className="text-sm pt-2 border-t">
-                <p className="font-medium mb-1">Observaciones:</p>
-                <p className="text-muted-foreground">{prospect.observaciones}</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      ))}
+{prospects.map((prospect) => (
+  <ProspectCard
+    key={prospect.id}
+    prospect={prospect}
+    onClick={() => setSelectedProspect(prospect)}
+  />
+))}
     </div>
 
     <ProspectDetailDialog
       prospect={selectedProspect}
       open={!!selectedProspect}
       onOpenChange={(open) => !open && setSelectedProspect(null)}
+      onSaved={() => fetchProspects()}
     />
     </>
   );
