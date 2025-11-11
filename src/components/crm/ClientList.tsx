@@ -115,35 +115,38 @@ const ClientList = ({
                 </div>
 
                 {/* Métricas de Negocio */}
-                <div className="flex flex-wrap gap-2">
-                  {/* Órdenes Activas */}
-                  {client.active_orders && client.active_orders > 0 && (
-                    <Badge variant="default" className="flex items-center gap-1.5 bg-blue-500 hover:bg-blue-600">
-                      <AlertCircle className="h-3 w-3" />
-                      <span className="text-xs">
-                        {client.active_orders} {client.active_orders === 1 ? 'orden activa' : 'órdenes activas'}
-                      </span>
-                    </Badge>
-                  )}
+                {(Number(client.active_orders ?? 0) > 0 || Number(client.total_debt ?? 0) > 0 || (Number(client.total_orders ?? 0) > 0 && Number(client.total_debt ?? 0) === 0)) && (
+                  <div className="flex flex-wrap gap-2">
+                    {/* Órdenes Activas */}
+                    {Number(client.active_orders ?? 0) > 0 && (
+                      <Badge variant="default" className="flex items-center gap-1.5 bg-blue-500 hover:bg-blue-600">
+                        <AlertCircle className="h-3 w-3" />
+                        <span className="text-xs">
+                          {Number(client.active_orders ?? 0)} {Number(client.active_orders ?? 0) === 1 ? 'orden activa' : 'órdenes activas'}
+                        </span>
+                      </Badge>
+                    )}
 
-                  {/* Deuda */}
-                  {client.total_debt && client.total_debt > 0 && (
-                    <Badge variant="destructive" className="flex items-center gap-1.5 whitespace-nowrap">
-                      <DollarSign className="h-3 w-3" />
-                      <span className="text-xs">
-                        Debe {formatCurrency(client.total_debt)}
-                      </span>
-                    </Badge>
-                  )}
+                    {/* Deuda */}
+                    {Number(client.total_debt ?? 0) > 0 && (
+                      <Badge variant="destructive" className="flex items-center gap-1.5 whitespace-nowrap">
+                        <DollarSign className="h-3 w-3" />
+                        <span className="text-xs">
+                          Debe {formatCurrency(Number(client.total_debt ?? 0))}
+                        </span>
+                      </Badge>
+                    )}
 
-                  {/* Cliente al corriente */}
-                  {(!client.total_debt || client.total_debt === 0) && client.total_orders && client.total_orders > 0 && (
-                    <Badge variant="outline" className="flex items-center gap-1.5 text-green-600 border-green-600">
-                      <DollarSign className="h-3 w-3" />
-                      <span className="text-xs">Al corriente</span>
-                    </Badge>
-                  )}
-                </div>
+                    {/* Cliente al corriente */}
+                    {Number(client.total_debt ?? 0) === 0 && Number(client.total_orders ?? 0) > 0 && (
+                      <Badge variant="outline" className="flex items-center gap-1.5 text-green-600 border-green-600">
+                        <DollarSign className="h-3 w-3" />
+                        <span className="text-xs">Al corriente</span>
+                      </Badge>
+                    )}
+                  </div>
+                )}
+
               </div>
 
               {/* Botones de Acción */}
