@@ -139,6 +139,9 @@ const ProspectDialog = ({
 
       if (error) throw error;
 
+      // Cerrar el modal inmediatamente
+      onOpenChange(false);
+      toast.success("Proyecto registrado exitosamente");
       onSuccess();
     } catch (error: any) {
       toast.error(error.message || "Error al registrar proyecto");
