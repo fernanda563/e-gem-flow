@@ -18,6 +18,18 @@ const Dashboard = () => {
   const [clientDialogOpen, setClientDialogOpen] = useState(false);
   const [orderDialogOpen, setOrderDialogOpen] = useState(false);
   const [prospectDialogOpen, setProspectDialogOpen] = useState(false);
+
+  const handleOpenClientDialog = () => {
+    setOrderDialogOpen(false);
+    setClientDialogOpen(true);
+  };
+
+  const handleClientSuccess = () => {
+    setClientDialogOpen(false);
+    setTimeout(() => {
+      setOrderDialogOpen(true);
+    }, 300);
+  };
   
   const stats = [
     {
@@ -254,18 +266,15 @@ const Dashboard = () => {
       <ClientDialog
         open={clientDialogOpen}
         onOpenChange={setClientDialogOpen}
-        onSuccess={() => {
-          setClientDialogOpen(false);
-          // Optionally refresh data or show success message
-        }}
+        onSuccess={handleClientSuccess}
       />
       <OrderDialog
         open={orderDialogOpen}
         onOpenChange={setOrderDialogOpen}
         onSuccess={() => {
           setOrderDialogOpen(false);
-          // Optionally refresh data or show success message
         }}
+        onOpenClientDialog={handleOpenClientDialog}
       />
     </div>
   );
