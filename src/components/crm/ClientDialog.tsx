@@ -42,6 +42,17 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useUserRole } from "@/hooks/useUserRole";
 
+// Helper function to capitalize first letter of each word in real-time
+function capitalizeAsYouType(value: string): string {
+  return value
+    .split(' ')
+    .map(word => {
+      if (word.length === 0) return word;
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
+    .join(' ');
+}
+
 // Helper function to capitalize first letter of each word
 function capitalizeFirstLetter(str: string): string {
   return str
@@ -301,6 +312,10 @@ const ClientDialog = ({ open, onOpenChange, client, onSuccess }: ClientDialogPro
                             e.preventDefault();
                           }
                         }}
+                        onChange={(e) => {
+                          const capitalized = capitalizeAsYouType(e.target.value);
+                          field.onChange(capitalized);
+                        }}
                         disabled={loading}
                       />
                     </FormControl>
@@ -314,7 +329,7 @@ const ClientDialog = ({ open, onOpenChange, client, onSuccess }: ClientDialogPro
                 name="apellido"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Apellido *</FormLabel>
+                    <FormLabel>Apellido(s) *</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
@@ -322,6 +337,10 @@ const ClientDialog = ({ open, onOpenChange, client, onSuccess }: ClientDialogPro
                           if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]$/.test(e.key)) {
                             e.preventDefault();
                           }
+                        }}
+                        onChange={(e) => {
+                          const capitalized = capitalizeAsYouType(e.target.value);
+                          field.onChange(capitalized);
                         }}
                         disabled={loading}
                       />
