@@ -17,10 +17,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, Upload, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { Order } from "@/pages/Orders";
 import type { Client } from "@/pages/CRM";
 
@@ -35,6 +35,8 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess }: OrderDialogProps)
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [clients, setClients] = useState<Client[]>([]);
+  const [currentStep, setCurrentStep] = useState(1);
+  const totalSteps = 4;
 
   // Financial data
   const [selectedClientId, setSelectedClientId] = useState("");
@@ -69,6 +71,7 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess }: OrderDialogProps)
 
   useEffect(() => {
     if (open) {
+      setCurrentStep(1);
       fetchClients();
       if (order) {
         // Load order data
@@ -95,6 +98,7 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess }: OrderDialogProps)
   }, [open, order]);
 
   const resetForm = () => {
+    setCurrentStep(1);
     setSelectedClientId("");
     setPrecioVenta("");
     setImporteAnticipo("");
@@ -195,6 +199,52 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess }: OrderDialogProps)
     return uploadedUrls;
   };
 
+  const canGoNext = (): boolean => {
+    if (currentStep === 1) {
+      // Validar paso 1
+      if (!selectedClientId) {
+        toast.error("Selecciona un cliente");
+        return false;
+      }
+      if (!precioVenta || !importeAnticipo || !formaPago) {
+        toast.error("Completa todos los campos obligatorios");
+        return false;
+      }
+      if (parseFloat(unformatCurrency(importeAnticipo)) > parseFloat(unformatCurrency(precioVenta))) {
+        toast.error("El anticipo no puede ser mayor al precio de venta");
+        return false;
+      }
+      return true;
+    }
+    if (currentStep === 2) {
+      // Validar paso 2
+      if (metalTipo === "oro" && (!metalPureza || !metalColor)) {
+        toast.error("Completa la pureza y color del oro");
+        return false;
+      }
+      return true;
+    }
+    if (currentStep === 3) {
+      // Validar paso 3
+      if (piedraTipo === "diamante" && (!diamanteForma || !diamanteQuilataje)) {
+        toast.error("Completa el corte y quilataje del diamante");
+        return false;
+      }
+      return true;
+    }
+    return true;
+  };
+
+  const handleNext = () => {
+    if (canGoNext()) {
+      setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
+    }
+  };
+
+  const handlePrevious = () => {
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -291,18 +341,50 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess }: OrderDialogProps)
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit}>
-          <Tabs defaultValue="client" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="client">Cliente y Pago</TabsTrigger>
-              <TabsTrigger value="metal">Metal</TabsTrigger>
-              <TabsTrigger value="stone">Piedra</TabsTrigger>
-              <TabsTrigger value="notes">Notas</TabsTrigger>
-            </TabsList>
+        {/* Stepper visual */}
+        <div className="flex items-center justify-between mb-8 px-4">
+          {[1, 2, 3, 4].map((step) => (
+            <div key={step} className="flex items-center flex-1">
+              <div className="flex flex-col items-center flex-1">
+                <div
+                  className={cn(
+                    "w-10 h-10 rounded-full flex items-center justify-center border-2 font-semibold transition-colors",
+                    currentStep === step && "border-accent bg-accent text-accent-foreground",
+                    currentStep > step && "border-primary bg-primary text-primary-foreground",
+                    currentStep < step && "border-muted-foreground/30 text-muted-foreground"
+                  )}
+                >
+                  {currentStep > step ? "✓" : step}
+                </div>
+                <span
+                  className={cn(
+                    "text-xs mt-2 font-medium transition-colors text-center",
+                    currentStep >= step ? "text-foreground" : "text-muted-foreground"
+                  )}
+                >
+                  {step === 1 && "Cliente y Pago"}
+                  {step === 2 && "Metal"}
+                  {step === 3 && "Piedra"}
+                  {step === 4 && "Notas"}
+                </span>
+              </div>
+              {step < 4 && (
+                <div
+                  className={cn(
+                    "h-0.5 flex-1 mx-2 transition-colors",
+                    currentStep > step ? "bg-primary" : "bg-muted-foreground/30"
+                  )}
+                />
+              )}
+            </div>
+          ))}
+        </div>
 
-            {/* Tab 1: Client and Payment */}
-            <TabsContent value="client" className="space-y-4 mt-4">
-              <div className="space-y-2">
+        <form onSubmit={handleSubmit}>
+            {/* Step 1: Client and Payment */}
+            {currentStep === 1 && (
+              <div className="space-y-4">
+                <div className="space-y-2">
                 <Label htmlFor="client">Cliente *</Label>
                 <Select
                   value={selectedClientId}
@@ -454,11 +536,13 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess }: OrderDialogProps)
                   </div>
                 )}
               </div>
-            </TabsContent>
+              </div>
+            )}
 
-            {/* Tab 2: Metal */}
-            <TabsContent value="metal" className="space-y-4 mt-4">
-              <div className="space-y-2">
+            {/* Step 2: Metal */}
+            {currentStep === 2 && (
+              <div className="space-y-4">
+                <div className="space-y-2">
                 <Label>Tipo de Metal *</Label>
                 <Select
                   value={metalTipo}
@@ -511,11 +595,13 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess }: OrderDialogProps)
                   </div>
                 </div>
               )}
-            </TabsContent>
+              </div>
+            )}
 
-            {/* Tab 3: Stone */}
-            <TabsContent value="stone" className="space-y-4 mt-4">
-              <div className="space-y-2">
+            {/* Step 3: Stone */}
+            {currentStep === 3 && (
+              <div className="space-y-4">
+                <div className="space-y-2">
                 <Label>Tipo de Piedra *</Label>
                 <Select
                   value={piedraTipo}
@@ -673,10 +759,12 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess }: OrderDialogProps)
                   />
                 </div>
               )}
-            </TabsContent>
+            </div>
+            )}
 
-            {/* Tab 4: Notes */}
-            <TabsContent value="notes" className="space-y-4 mt-4">
+            {/* Step 4: Notes */}
+            {currentStep === 4 && (
+              <div className="space-y-4">
               <div className="space-y-2">
                 <Label>Notas Adicionales</Label>
                 <Textarea
@@ -687,32 +775,59 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess }: OrderDialogProps)
                   rows={8}
                 />
               </div>
-            </TabsContent>
-          </Tabs>
+            </div>
+            )}
 
-          <div className="flex justify-end gap-3 pt-6 mt-6 border-t">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={loading}
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              disabled={loading || uploading}
-              className="bg-accent hover:bg-accent/90 text-accent-foreground"
-            >
-              {loading || uploading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {uploading ? "Subiendo comprobantes..." : "Guardando..."}
-                </>
-              ) : (
-                <>{order ? "Actualizar Orden" : "Crear Orden"}</>
+          <div className="flex justify-between gap-3 pt-6 mt-6 border-t">
+            <div>
+              {currentStep > 1 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handlePrevious}
+                  disabled={loading}
+                >
+                  Anterior
+                </Button>
               )}
-            </Button>
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                disabled={loading}
+              >
+                Cancelar
+              </Button>
+
+              {currentStep < totalSteps ? (
+                <Button
+                  type="button"
+                  onClick={handleNext}
+                  className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                  disabled={loading}
+                >
+                  Siguiente
+                </Button>
+              ) : (
+                <Button
+                  type="submit"
+                  disabled={loading || uploading}
+                  className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                >
+                  {loading || uploading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {uploading ? "Subiendo comprobantes..." : "Guardando..."}
+                    </>
+                  ) : (
+                    <>{order ? "Actualizar Orden" : "Crear Orden"}</>
+                  )}
+                </Button>
+              )}
+            </div>
           </div>
         </form>
       </DialogContent>
