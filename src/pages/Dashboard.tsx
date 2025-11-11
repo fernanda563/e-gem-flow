@@ -1,9 +1,15 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, ShoppingCart, Gem, TrendingUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Users, ShoppingCart, Gem, TrendingUp, Plus, UserPlus, ShoppingBag } from "lucide-react";
+import ClientDialog from "@/components/crm/ClientDialog";
+import OrderDialog from "@/components/orders/OrderDialog";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const [clientDialogOpen, setClientDialogOpen] = useState(false);
+  const [orderDialogOpen, setOrderDialogOpen] = useState(false);
   
   const stats = [
     {
@@ -40,6 +46,32 @@ const Dashboard = () => {
     <div className="min-h-full bg-background">
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8">
+        {/* Header with Action Buttons */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+            <p className="text-muted-foreground mt-1">
+              Bienvenido a tu sistema de gestión
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <Button
+              onClick={() => setClientDialogOpen(true)}
+              className="bg-accent hover:bg-accent/90 text-accent-foreground"
+            >
+              <UserPlus className="h-4 w-4 mr-2" />
+              Nuevo Cliente
+            </Button>
+            <Button
+              onClick={() => setOrderDialogOpen(true)}
+              className="bg-primary hover:bg-primary/90"
+            >
+              <ShoppingBag className="h-4 w-4 mr-2" />
+              Nueva Orden
+            </Button>
+          </div>
+        </div>
+
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {stats.map((stat, index) => (
@@ -196,6 +228,24 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       </main>
+
+      {/* Dialogs */}
+      <ClientDialog
+        open={clientDialogOpen}
+        onOpenChange={setClientDialogOpen}
+        onSuccess={() => {
+          setClientDialogOpen(false);
+          // Optionally refresh data or show success message
+        }}
+      />
+      <OrderDialog
+        open={orderDialogOpen}
+        onOpenChange={setOrderDialogOpen}
+        onSuccess={() => {
+          setOrderDialogOpen(false);
+          // Optionally refresh data or show success message
+        }}
+      />
     </div>
   );
 };
