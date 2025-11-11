@@ -43,14 +43,14 @@ export const AssignmentDialog = ({
 }: AssignmentDialogProps) => {
   const [disenadores, setDisenadores] = useState<Profile[]>([]);
   const [joyeros, setJoyeros] = useState<Profile[]>([]);
-  const [disenadorId, setDisenadorId] = useState(currentDisenadorId || "");
-  const [joyeroId, setJoyeroId] = useState(currentJoyeroId || "");
+  const [disenadorId, setDisenadorId] = useState(currentDisenadorId || "none");
+  const [joyeroId, setJoyeroId] = useState(currentJoyeroId || "none");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (open) {
-      setDisenadorId(currentDisenadorId || "");
-      setJoyeroId(currentJoyeroId || "");
+      setDisenadorId(currentDisenadorId || "none");
+      setJoyeroId(currentJoyeroId || "none");
       fetchUsers();
     }
   }, [open, currentDisenadorId, currentJoyeroId]);
@@ -101,8 +101,9 @@ export const AssignmentDialog = ({
 
     try {
       const updates: any = {};
-      if (disenadorId) updates.disenador_id = disenadorId;
-      if (joyeroId) updates.joyero_id = joyeroId;
+      // Convert "none" to null for database
+      updates.disenador_id = disenadorId === "none" ? null : disenadorId;
+      updates.joyero_id = joyeroId === "none" ? null : joyeroId;
 
       const { error } = await supabase
         .from("orders")
@@ -136,7 +137,7 @@ export const AssignmentDialog = ({
                 <SelectValue placeholder="Seleccionar diseñador" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Sin asignar</SelectItem>
+                <SelectItem value="none">Sin asignar</SelectItem>
                 {disenadores.map((d) => (
                   <SelectItem key={d.id} value={d.id}>
                     {d.nombre} {d.apellido_paterno}
@@ -153,7 +154,7 @@ export const AssignmentDialog = ({
                 <SelectValue placeholder="Seleccionar joyero" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Sin asignar</SelectItem>
+                <SelectItem value="none">Sin asignar</SelectItem>
                 {joyeros.map((j) => (
                   <SelectItem key={j.id} value={j.id}>
                     {j.nombre} {j.apellido_paterno}
