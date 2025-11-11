@@ -54,17 +54,19 @@ const OrderList = ({ orders, loading, onEdit }: OrderListProps) => {
             <div className="flex items-start justify-between">
               <div className="flex-1 space-y-3">
                 {/* Header */}
-                <div className="flex items-center gap-4">
-                  <h3 className="text-xl font-semibold text-foreground">
-                    {order.clients?.nombre} {order.clients?.apellido}
-                  </h3>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-xl font-semibold text-foreground">
+                      {order.clients?.nombre} {order.clients?.apellido}
+                    </h3>
+                    {getPaymentStatusBadge(order.estatus_pago)}
+                    {getProductionStatus(order)}
+                  </div>
                   {order.custom_id && (
-                    <span className="text-sm font-medium text-muted-foreground">
+                    <div className="text-sm font-medium text-muted-foreground">
                       {order.custom_id}
-                    </span>
+                    </div>
                   )}
-                  {getPaymentStatusBadge(order.estatus_pago)}
-                  {getProductionStatus(order)}
                 </div>
 
                 {/* Product Info */}
