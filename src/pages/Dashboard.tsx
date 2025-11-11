@@ -1,7 +1,10 @@
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, ShoppingCart, Gem, TrendingUp } from "lucide-react";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+  
   const stats = [
     {
       title: "Clientes Activos",
@@ -64,6 +67,7 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <Card 
             className="border-border hover:border-accent transition-colors duration-300 cursor-pointer group"
+            onClick={() => navigate('/crm')}
           >
             <CardHeader>
               <div className="flex items-center gap-3">
@@ -90,7 +94,10 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="border-border hover:border-accent transition-colors duration-300 cursor-pointer group">
+          <Card 
+            className="border-border hover:border-accent transition-colors duration-300 cursor-pointer group"
+            onClick={() => navigate('/orders')}
+          >
             <CardHeader>
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-success/10 rounded-lg group-hover:bg-success/20 transition-colors">
