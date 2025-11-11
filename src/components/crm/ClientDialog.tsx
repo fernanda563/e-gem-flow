@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import PhoneInput from 'react-phone-number-input';
+import 'react-phone-number-input/style.css';
 import {
   Dialog,
   DialogContent,
@@ -115,12 +117,10 @@ const clientFormSchema = z.object({
   
   telefono_principal: z
     .string()
-    .min(1, "El teléfono principal es obligatorio")
-    .regex(/^\d{10}$/, "El teléfono debe tener exactamente 10 dígitos"),
+    .min(1, "El teléfono principal es obligatorio"),
   
   telefono_adicional: z
     .string()
-    .regex(/^\d{10}$/, "El teléfono debe tener exactamente 10 dígitos")
     .optional()
     .or(z.literal("")),
   
@@ -612,23 +612,13 @@ const ClientDialog = ({ open, onOpenChange, client, onSuccess }: ClientDialogPro
                   <FormItem>
                     <FormLabel>Teléfono Principal *</FormLabel>
                     <FormControl>
-                      <Input
-                        {...field}
-                        type="tel"
-                        placeholder="(555) 123-4567"
-                        value={formatPhoneNumber(field.value)}
-                        onKeyPress={(e) => {
-                          if (!/^\d$/.test(e.key)) {
-                            e.preventDefault();
-                          }
-                        }}
-                        onChange={(e) => {
-                          const cleaned = cleanPhoneNumber(e.target.value);
-                          if (cleaned.length <= 10) {
-                            field.onChange(cleaned);
-                          }
-                        }}
+                      <PhoneInput
+                        international
+                        defaultCountry="MX"
+                        value={field.value}
+                        onChange={field.onChange}
                         disabled={loading}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       />
                     </FormControl>
                     <FormMessage />
@@ -643,23 +633,13 @@ const ClientDialog = ({ open, onOpenChange, client, onSuccess }: ClientDialogPro
                   <FormItem>
                     <FormLabel>Teléfono Adicional</FormLabel>
                     <FormControl>
-                      <Input
-                        {...field}
-                        type="tel"
-                        placeholder="(555) 123-4567"
-                        value={formatPhoneNumber(field.value || "")}
-                        onKeyPress={(e) => {
-                          if (!/^\d$/.test(e.key)) {
-                            e.preventDefault();
-                          }
-                        }}
-                        onChange={(e) => {
-                          const cleaned = cleanPhoneNumber(e.target.value);
-                          if (cleaned.length <= 10) {
-                            field.onChange(cleaned);
-                          }
-                        }}
+                      <PhoneInput
+                        international
+                        defaultCountry="MX"
+                        value={field.value}
+                        onChange={field.onChange}
                         disabled={loading}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       />
                     </FormControl>
                     <FormMessage />

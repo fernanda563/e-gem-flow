@@ -65,7 +65,9 @@ export type Database = {
           id: string
           nombre: string
           telefono_adicional: string | null
+          telefono_adicional_codigo_pais: string | null
           telefono_principal: string
+          telefono_principal_codigo_pais: string | null
           updated_at: string
         }
         Insert: {
@@ -77,7 +79,9 @@ export type Database = {
           id?: string
           nombre: string
           telefono_adicional?: string | null
+          telefono_adicional_codigo_pais?: string | null
           telefono_principal: string
+          telefono_principal_codigo_pais?: string | null
           updated_at?: string
         }
         Update: {
@@ -89,7 +93,9 @@ export type Database = {
           id?: string
           nombre?: string
           telefono_adicional?: string | null
+          telefono_adicional_codigo_pais?: string | null
           telefono_principal?: string
+          telefono_principal_codigo_pais?: string | null
           updated_at?: string
         }
         Relationships: []
