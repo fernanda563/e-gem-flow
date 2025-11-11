@@ -380,6 +380,15 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess }: OrderDialogProps)
                 </div>
               </div>
 
+              {precioVenta && importeAnticipo && (
+                <div className="flex items-center justify-between py-2 px-3 border-l-2 border-warning bg-warning/5">
+                  <span className="text-sm text-muted-foreground">Saldo Pendiente:</span>
+                  <span className="text-lg font-semibold text-warning">
+                    ${(parseFloat(unformatCurrency(precioVenta)) - parseFloat(unformatCurrency(importeAnticipo))).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="forma_pago">Forma de Pago *</Label>
@@ -409,15 +418,6 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess }: OrderDialogProps)
                   </Select>
                 </div>
               </div>
-
-              {precioVenta && importeAnticipo && (
-                <div className="p-4 bg-muted rounded-lg">
-                  <p className="text-sm font-medium text-foreground">Saldo Pendiente:</p>
-                  <p className="text-2xl font-bold text-warning">
-                    ${(parseFloat(unformatCurrency(precioVenta)) - parseFloat(unformatCurrency(importeAnticipo))).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </p>
-                </div>
-              )}
 
               <div className="space-y-2 mt-4">
                 <Label>Comprobantes de Pago</Label>
