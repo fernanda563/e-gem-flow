@@ -2,14 +2,22 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Users, ShoppingCart, Gem, TrendingUp, Plus, UserPlus, ShoppingBag } from "lucide-react";
 import ClientDialog from "@/components/crm/ClientDialog";
 import OrderDialog from "@/components/orders/OrderDialog";
+import ProspectDialog from "@/components/crm/ProspectDialog";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [clientDialogOpen, setClientDialogOpen] = useState(false);
   const [orderDialogOpen, setOrderDialogOpen] = useState(false);
+  const [prospectDialogOpen, setProspectDialogOpen] = useState(false);
   
   const stats = [
     {
@@ -54,22 +62,28 @@ const Dashboard = () => {
               Bienvenido a tu sistema de gestión
             </p>
           </div>
-          <div className="flex gap-3">
-            <Button
-              onClick={() => setClientDialogOpen(true)}
-              className="bg-accent hover:bg-accent/90 text-accent-foreground"
-            >
-              <UserPlus className="h-4 w-4 mr-2" />
-              Nuevo Cliente
-            </Button>
-            <Button
-              onClick={() => setOrderDialogOpen(true)}
-              className="bg-primary hover:bg-primary/90"
-            >
-              <ShoppingBag className="h-4 w-4 mr-2" />
-              Nueva Orden
-            </Button>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button className="bg-primary hover:bg-primary/90">
+                <Plus className="h-4 w-4 mr-2" />
+                Acciones Rápidas
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48 bg-popover z-50">
+              <DropdownMenuItem onClick={() => setProspectDialogOpen(true)}>
+                <Gem className="h-4 w-4 mr-2" />
+                Nuevo Proyecto
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setClientDialogOpen(true)}>
+                <UserPlus className="h-4 w-4 mr-2" />
+                Nuevo Cliente
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setOrderDialogOpen(true)}>
+                <ShoppingBag className="h-4 w-4 mr-2" />
+                Nueva Orden
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Stats Grid */}
@@ -230,6 +244,13 @@ const Dashboard = () => {
       </main>
 
       {/* Dialogs */}
+      <ProspectDialog
+        open={prospectDialogOpen}
+        onOpenChange={setProspectDialogOpen}
+        onSuccess={() => {
+          setProspectDialogOpen(false);
+        }}
+      />
       <ClientDialog
         open={clientDialogOpen}
         onOpenChange={setClientDialogOpen}
