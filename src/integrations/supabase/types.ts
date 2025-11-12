@@ -188,6 +188,7 @@ export type Database = {
           notas: string | null
           piedra_tipo: string
           precio_venta: number
+          stl_file_id: string | null
           talla: number | null
           tipo_accesorio: string | null
           updated_at: string
@@ -219,6 +220,7 @@ export type Database = {
           notas?: string | null
           piedra_tipo: string
           precio_venta: number
+          stl_file_id?: string | null
           talla?: number | null
           tipo_accesorio?: string | null
           updated_at?: string
@@ -250,6 +252,7 @@ export type Database = {
           notas?: string | null
           piedra_tipo?: string
           precio_venta?: number
+          stl_file_id?: string | null
           talla?: number | null
           tipo_accesorio?: string | null
           updated_at?: string
@@ -274,6 +277,13 @@ export type Database = {
             columns: ["joyero_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_stl_file_id_fkey"
+            columns: ["stl_file_id"]
+            isOneToOne: false
+            referencedRelation: "stl_files"
             referencedColumns: ["id"]
           },
         ]
@@ -429,6 +439,59 @@ export type Database = {
             columns: ["prospect_id"]
             isOneToOne: false
             referencedRelation: "prospects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stl_files: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          descripcion: string | null
+          edit_file_type: string | null
+          edit_file_url: string | null
+          id: string
+          nombre: string
+          order_id: string | null
+          stl_file_url: string
+          thumbnail_url: string | null
+          tipo_accesorio: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          descripcion?: string | null
+          edit_file_type?: string | null
+          edit_file_url?: string | null
+          id?: string
+          nombre: string
+          order_id?: string | null
+          stl_file_url: string
+          thumbnail_url?: string | null
+          tipo_accesorio?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          descripcion?: string | null
+          edit_file_type?: string | null
+          edit_file_url?: string | null
+          id?: string
+          nombre?: string
+          order_id?: string | null
+          stl_file_url?: string
+          thumbnail_url?: string | null
+          tipo_accesorio?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stl_files_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
             referencedColumns: ["id"]
           },
         ]

@@ -41,6 +41,7 @@ export interface Order {
   comprobantes_pago?: string[];
   imagenes_referencia?: string[];
   fecha_entrega_esperada?: string;
+  stl_file_id?: string;
   created_at: string;
   clients?: {
     nombre: string;

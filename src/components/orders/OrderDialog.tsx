@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Upload, X, Plus, Trash2, CalendarIcon, ImageIcon } from "lucide-react";
+import { Loader2, Upload, X, Plus, Trash2, CalendarIcon, ImageIcon, Box } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -33,6 +33,7 @@ import { es } from "date-fns/locale";
 import type { Order } from "@/pages/Orders";
 import type { Client } from "@/pages/CRM";
 import { useUserRole } from "@/hooks/useUserRole";
+import { OrderDialogStep5 } from "./OrderDialogStep5";
 
 interface OrderDialogProps {
   open: boolean;
@@ -66,8 +67,12 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess, onOpenClientDialog 
   const [selectedProspectId, setSelectedProspectId] = useState("");
   const [isLoadingProspects, setIsLoadingProspects] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
-  const [step4Visited, setStep4Visited] = useState(false);
-  const totalSteps = 4;
+  const [step5Visited, setStep5Visited] = useState(false);
+  const totalSteps = 5;
+  
+  // STL Files
+  const [availableSTLFiles, setAvailableSTLFiles] = useState<any[]>([]);
+  const [selectedSTLFileId, setSelectedSTLFileId] = useState("");
 
   // Financial data
   const [selectedClientId, setSelectedClientId] = useState("");
@@ -135,6 +140,7 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess, onOpenClientDialog 
         setGemaObservaciones(order.gema_observaciones || "");
         setNotas(order.notas || "");
         setFechaEntregaEsperada(order.fecha_entrega_esperada ? new Date(order.fecha_entrega_esperada) : undefined);
+        setSelectedSTLFileId(order.stl_file_id || "");
         setPaymentReceipts([]);
         setReferenceImages([]);
         
@@ -172,15 +178,15 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess, onOpenClientDialog 
   }, [selectedClientId, order]);
 
   useEffect(() => {
-    if (currentStep === 4) {
+    if (currentStep === 5) {
       // Pequeño delay para prevenir clicks/enters accidentales
-      setTimeout(() => setStep4Visited(true), 100);
+      setTimeout(() => setStep5Visited(true), 100);
     }
   }, [currentStep]);
 
   const resetForm = () => {
     setCurrentStep(1);
-    setStep4Visited(false);
+    setStep5Visited(false);
     setSelectedClientId("");
     setTipoAccesorio("");
     setTalla("");
@@ -207,6 +213,7 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess, onOpenClientDialog 
     setUploadedImageUrls([]);
     setClientProspects([]);
     setSelectedProspectId("");
+    setSelectedSTLFileId("");
   };
 
   const fetchClients = async () => {
@@ -239,6 +246,21 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess, onOpenClientDialog 
       setClientProspects([]);
     } finally {
       setIsLoadingProspects(false);
+    }
+  };
+
+  const fetchSTLFiles = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("stl_files")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setAvailableSTLFiles(data || []);
+    } catch (error) {
+      console.error("Error al cargar archivos STL:", error);
+      setAvailableSTLFiles([]);
     }
   };
 
@@ -515,7 +537,7 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess, onOpenClientDialog 
       
       // Resetear la bandera cuando avanzamos al último paso
       if (nextStep === totalSteps) {
-        setStep4Visited(false);
+        setStep5Visited(false);
       }
     }
   };
@@ -747,6 +769,7 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess, onOpenClientDialog 
         comprobantes_pago: receiptUrls,
         imagenes_referencia: imageUrls,
         fecha_entrega_esperada: fechaEntregaEsperada ? format(fechaEntregaEsperada, 'yyyy-MM-dd') : null,
+        stl_file_id: selectedSTLFileId || null,
       };
 
       if (piedraTipo === "diamante") {
@@ -839,7 +862,7 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess, onOpenClientDialog 
 
         {/* Stepper visual */}
         <div className="flex items-center justify-between mb-8 px-4">
-          {[1, 2, 3, 4].map((step) => (
+          {[1, 2, 3, 4, 5].map((step) => (
             <div key={step} className="flex items-center flex-1">
               <div className="flex flex-col items-center flex-1">
                 <div
@@ -861,10 +884,11 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess, onOpenClientDialog 
                   {step === 1 && "Cliente y Pago"}
                   {step === 2 && "Metal"}
                   {step === 3 && "Piedra"}
-                  {step === 4 && "Notas"}
+                  {step === 4 && "Imágenes"}
+                  {step === 5 && "Archivos 3D"}
                 </span>
               </div>
-              {step < 4 && (
+              {step < 5 && (
                 <div
                   className={cn(
                     "h-0.5 flex-1 mx-2 transition-colors",
@@ -1427,20 +1451,9 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess, onOpenClientDialog 
             </div>
             )}
 
-            {/* Step 4: Notes */}
+            {/* Step 4: Reference Images */}
             {currentStep === 4 && (
               <div className="space-y-6">
-                <div className="space-y-2">
-                  <Label>Notas Adicionales</Label>
-                  <Textarea
-                    value={notas}
-                    onChange={(e) => setNotas(e.target.value)}
-                    disabled={loading}
-                    placeholder="Detalles adicionales sobre la orden..."
-                    rows={6}
-                  />
-                </div>
-
                 {/* Reference Images Section */}
                 <div className="space-y-3">
                   <Label>Imágenes de Referencia del Cliente</Label>
@@ -1549,6 +1562,18 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess, onOpenClientDialog 
               </div>
             )}
 
+            {/* Step 5: 3D Files and Final Notes */}
+            {currentStep === 5 && (
+              <OrderDialogStep5
+                notas={notas}
+                setNotas={setNotas}
+                selectedSTLFileId={selectedSTLFileId}
+                setSelectedSTLFileId={setSelectedSTLFileId}
+                availableSTLFiles={availableSTLFiles}
+                loading={loading}
+              />
+            )}
+
           <div className="flex justify-between gap-3 pt-6 mt-6 border-t">
             {/* Lado izquierdo: Eliminar o Anterior */}
             <div className="flex gap-3">
@@ -1600,7 +1625,7 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess, onOpenClientDialog 
               ) : (
                 <Button
                   type="submit"
-                  disabled={loading || uploading || !step4Visited}
+                  disabled={loading || uploading || !step5Visited}
                   className="bg-accent hover:bg-accent/90 text-accent-foreground"
                 >
                   {loading || uploading ? (

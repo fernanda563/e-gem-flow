@@ -9,6 +9,7 @@ import {
   Shield,
   BarChart3,
   FileText,
+  Box,
 } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
 import {
@@ -64,6 +65,12 @@ const menuItems = [
     title: "Gestión de Usuarios",
     url: "/users",
     icon: Shield,
+    adminOnly: true,
+  },
+  {
+    title: "Colección STL/EDIT",
+    url: "/stl-collection",
+    icon: Box,
     adminOnly: true,
   },
   {
