@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Search, Upload, Box, Download, ExternalLink, Trash2, Eye } from "lucide-react";
 import { STLViewer } from "@/components/stl/STLViewer";
+import { STLUploadDialog } from "@/components/stl/STLUploadDialog";
 import {
   Dialog,
   DialogContent,
@@ -51,6 +52,7 @@ export default function STLCollection() {
   const [viewerOpen, setViewerOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [fileToDelete, setFileToDelete] = useState<STLFile | null>(null);
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const { isAdmin } = useUserRole();
 
   useEffect(() => {
@@ -151,10 +153,18 @@ export default function STLCollection() {
             Repositorio de archivos 3D y editables para joyería
           </p>
         </div>
-        <Badge variant="secondary" className="text-lg px-4 py-2">
-          <Box className="h-4 w-4 mr-2" />
-          {files.length} archivos
-        </Badge>
+        <div className="flex items-center gap-3">
+          {isAdmin() && (
+            <Button onClick={() => setUploadDialogOpen(true)}>
+              <Upload className="h-4 w-4 mr-2" />
+              Subir archivo
+            </Button>
+          )}
+          <Badge variant="secondary" className="text-lg px-4 py-2">
+            <Box className="h-4 w-4 mr-2" />
+            {files.length} archivos
+          </Badge>
+        </div>
       </div>
 
       {/* Filters */}
@@ -325,6 +335,13 @@ export default function STLCollection() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Upload Dialog */}
+      <STLUploadDialog
+        open={uploadDialogOpen}
+        onOpenChange={setUploadDialogOpen}
+        onSuccess={fetchSTLFiles}
+      />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
