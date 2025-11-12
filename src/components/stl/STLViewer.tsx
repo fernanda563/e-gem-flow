@@ -23,7 +23,7 @@ export function STLViewer({ fileUrl, height = "400px", width = "100%" }: STLView
     
     const container = containerRef.current;
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color("#2d2d2d");
+    scene.background = new THREE.Color("#f0f0f0");
 
     const widthPx = container.clientWidth || 800;
     const heightPx = container.clientHeight || 400;
@@ -164,9 +164,12 @@ export function STLViewer({ fileUrl, height = "400px", width = "100%" }: STLView
         // Compute smooth normals for better detail
         geometry.computeVertexNormals();
 
+        // For SVG, use Lambert material with computed vertex normals for better shading
         const material = isSVG
-          ? new THREE.MeshBasicMaterial({
-              color: new THREE.Color("#e8e8e8"),
+          ? new THREE.MeshLambertMaterial({
+              color: new THREE.Color("#c0c0c0"),
+              emissive: new THREE.Color("#101010"),
+              emissiveIntensity: 0.1,
             })
           : new THREE.MeshPhysicalMaterial({
               color: new THREE.Color("#eaeaea"),
@@ -272,8 +275,11 @@ export function STLViewer({ fileUrl, height = "400px", width = "100%" }: STLView
         Arrastra para rotar • Scroll para zoom
       </div>
       {isBasicMode && (
-        <div className="absolute top-2 left-2 bg-amber-500/90 backdrop-blur-sm px-3 py-1 rounded-md text-xs text-white border border-amber-600 pointer-events-none">
-          Modo básico (sin sombras ni reflejos)
+        <div className="absolute bottom-2 left-2 bg-blue-500/90 backdrop-blur-sm px-2 py-1 rounded text-[10px] text-white border border-blue-600 pointer-events-none flex items-center gap-1">
+          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Previsualización simplificada</span>
         </div>
       )}
     </div>
