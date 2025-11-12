@@ -463,6 +463,10 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess, onOpenClientDialog 
         toast.error("El anticipo no puede ser mayor al precio de venta");
         return false;
       }
+      if (!fechaEntregaEsperada) {
+        toast.error("Selecciona una fecha de entrega esperada");
+        return false;
+      }
       return true;
     }
     if (currentStep === 2) {
@@ -1113,7 +1117,7 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess, onOpenClientDialog 
               </div>
 
               <div className="space-y-2">
-                <Label>Fecha de Entrega Esperada</Label>
+                <Label>Fecha de Entrega Esperada *</Label>
                 <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                   <PopoverTrigger asChild>
                     <Button
