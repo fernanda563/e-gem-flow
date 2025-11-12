@@ -76,10 +76,22 @@ const OrderList = ({ orders, loading, onEdit }: OrderListProps) => {
                       {order.stl_file && (
                         <>
                           <span className="text-muted-foreground">•</span>
-                          <Badge variant="outline" className="text-xs">
-                            <span className="mr-1">📐</span>
-                            {order.stl_file.nombre}
-                          </Badge>
+                          <a
+                            href={`/stl-viewer-fullscreen?url=${encodeURIComponent(order.stl_file.stl_file_url)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}
+                          >
+                            <Badge 
+                              variant="outline" 
+                              className="text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors"
+                            >
+                              <span className="mr-1">📐</span>
+                              Ver STL
+                            </Badge>
+                          </a>
                         </>
                       )}
                     </div>

@@ -46,6 +46,7 @@ export interface Order {
     id: string;
     nombre: string;
     tipo_accesorio: string;
+    stl_file_url: string;
   } | null;
   created_at: string;
   clients?: {
@@ -135,7 +136,8 @@ const Orders = () => {
         stl_file:stl_files!orders_stl_file_id_fkey (
           id,
           nombre,
-          tipo_accesorio
+          tipo_accesorio,
+          stl_file_url
         )
       `)
       .order("created_at", { ascending: false });
