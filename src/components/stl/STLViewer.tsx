@@ -26,7 +26,7 @@ export function STLViewer({ fileUrl, height = "400px", width = "100%" }: STLView
     const widthPx = container.clientWidth || 800;
     const heightPx = container.clientHeight || 400;
 
-    const camera = new THREE.PerspectiveCamera(50, widthPx / heightPx, 0.1, 5000);
+    const camera = new THREE.PerspectiveCamera(40, widthPx / heightPx, 0.1, 5000);
     camera.position.set(0, 0, 150);
 
     // Forzar WebGL1 para mayor compatibilidad en iframes/sandboxes
@@ -85,23 +85,39 @@ export function STLViewer({ fileUrl, height = "400px", width = "100%" }: STLView
       return;
     }
 
-    if (renderer.setPixelRatio) renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    if (renderer.setPixelRatio) renderer.setPixelRatio(window.devicePixelRatio);
     if (renderer.setSize) renderer.setSize(widthPx, heightPx);
+    
+    // Enable shadows for WebGL only
+    if (!isSVG && renderer.shadowMap) {
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    }
+    
     container.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
     // Lights
-    const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
+    scene.add(hemiLight);
+    
+    const ambient = new THREE.AmbientLight(0xffffff, 0.4);
     scene.add(ambient);
 
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
     dirLight.position.set(50, 50, 50);
     dirLight.castShadow = true;
+    dirLight.shadow.mapSize.width = 2048;
+    dirLight.shadow.mapSize.height = 2048;
     scene.add(dirLight);
 
-    const dirLight2 = new THREE.DirectionalLight(0xffffff, 0.3);
+    const dirLight2 = new THREE.DirectionalLight(0xffffff, 0.4);
     dirLight2.position.set(-50, -50, -50);
     scene.add(dirLight2);
+    
+    const dirLight3 = new THREE.DirectionalLight(0xffffff, 0.3);
+    dirLight3.position.set(0, 50, -50);
+    scene.add(dirLight3);
 
     // Controls
     const controls = new OrbitControls(camera, renderer.domElement);
@@ -135,15 +151,18 @@ export function STLViewer({ fileUrl, height = "400px", width = "100%" }: STLView
         console.info('STL cargado. Vértices:', geometry.attributes?.position?.count);
         geometry.computeBoundingBox();
         geometry.center();
+        
+        // Compute smooth normals for better detail
+        geometry.computeVertexNormals();
 
         const material = isSVG
           ? new THREE.MeshBasicMaterial({
-              color: new THREE.Color("#b3b3b3"),
+              color: new THREE.Color("#d4d4d4"),
             })
           : new THREE.MeshStandardMaterial({
-              color: new THREE.Color("#b3b3b3"),
-              metalness: 0.6,
-              roughness: 0.4,
+              color: new THREE.Color("#d4d4d4"),
+              metalness: 0.3,
+              roughness: 0.5,
             });
         mesh = new THREE.Mesh(geometry, material);
         mesh.castShadow = true;
