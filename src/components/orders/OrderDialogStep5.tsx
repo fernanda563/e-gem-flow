@@ -35,7 +35,9 @@ export function OrderDialogStep5({
   availableSTLFiles,
   loading,
 }: OrderDialogStep5Props) {
-  const selectedSTLFile = availableSTLFiles.find(f => f.id === selectedSTLFileId);
+  const selectedSTLFile = selectedSTLFileId && selectedSTLFileId !== "none" 
+    ? availableSTLFiles.find(f => f.id === selectedSTLFileId) 
+    : null;
 
   return (
     <div className="space-y-6">
@@ -69,7 +71,7 @@ export function OrderDialogStep5({
             <SelectValue placeholder="Seleccionar archivo STL existente" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Ninguno (dejar en blanco)</SelectItem>
+            <SelectItem value="none">Ninguno (dejar en blanco)</SelectItem>
             {availableSTLFiles.map((file) => (
               <SelectItem key={file.id} value={file.id}>
                 {file.nombre}

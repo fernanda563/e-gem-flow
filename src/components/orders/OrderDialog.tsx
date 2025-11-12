@@ -140,7 +140,7 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess, onOpenClientDialog 
         setGemaObservaciones(order.gema_observaciones || "");
         setNotas(order.notas || "");
         setFechaEntregaEsperada(order.fecha_entrega_esperada ? new Date(order.fecha_entrega_esperada) : undefined);
-        setSelectedSTLFileId(order.stl_file_id || "");
+        setSelectedSTLFileId(order.stl_file_id || "none");
         setPaymentReceipts([]);
         setReferenceImages([]);
         
@@ -213,7 +213,7 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess, onOpenClientDialog 
     setUploadedImageUrls([]);
     setClientProspects([]);
     setSelectedProspectId("");
-    setSelectedSTLFileId("");
+    setSelectedSTLFileId("none");
   };
 
   const fetchClients = async () => {
@@ -769,7 +769,7 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess, onOpenClientDialog 
         comprobantes_pago: receiptUrls,
         imagenes_referencia: imageUrls,
         fecha_entrega_esperada: fechaEntregaEsperada ? format(fechaEntregaEsperada, 'yyyy-MM-dd') : null,
-        stl_file_id: selectedSTLFileId || null,
+        stl_file_id: selectedSTLFileId && selectedSTLFileId !== "none" ? selectedSTLFileId : null,
       };
 
       if (piedraTipo === "diamante") {
