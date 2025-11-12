@@ -21,7 +21,7 @@ export function STLViewer({ fileUrl, height = "400px", width = "100%" }: STLView
     
     const container = containerRef.current;
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color("#f4f4f5");
+    scene.background = new THREE.Color("#2d2d2d");
 
     const widthPx = container.clientWidth || 800;
     const heightPx = container.clientHeight || 400;
@@ -98,17 +98,24 @@ export function STLViewer({ fileUrl, height = "400px", width = "100%" }: STLView
     rendererRef.current = renderer;
 
     // Lights
-    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x1a1a1a, 0.5);
     scene.add(hemiLight);
     
-    const ambient = new THREE.AmbientLight(0xffffff, 0.4);
+    const ambient = new THREE.AmbientLight(0xffffff, 0.25);
     scene.add(ambient);
 
-    const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
     dirLight.position.set(50, 50, 50);
     dirLight.castShadow = true;
     dirLight.shadow.mapSize.width = 2048;
     dirLight.shadow.mapSize.height = 2048;
+    dirLight.shadow.camera.near = 0.5;
+    dirLight.shadow.camera.far = 500;
+    dirLight.shadow.camera.left = -100;
+    dirLight.shadow.camera.right = 100;
+    dirLight.shadow.camera.top = 100;
+    dirLight.shadow.camera.bottom = -100;
+    dirLight.shadow.bias = -0.001;
     scene.add(dirLight);
 
     const dirLight2 = new THREE.DirectionalLight(0xffffff, 0.4);
@@ -157,12 +164,12 @@ export function STLViewer({ fileUrl, height = "400px", width = "100%" }: STLView
 
         const material = isSVG
           ? new THREE.MeshBasicMaterial({
-              color: new THREE.Color("#d4d4d4"),
+              color: new THREE.Color("#e8e8e8"),
             })
           : new THREE.MeshStandardMaterial({
-              color: new THREE.Color("#d4d4d4"),
-              metalness: 0.3,
-              roughness: 0.5,
+              color: new THREE.Color("#e8e8e8"),
+              metalness: 0.4,
+              roughness: 0.3,
             });
         mesh = new THREE.Mesh(geometry, material);
         mesh.castShadow = true;
