@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Upload, X, Plus, Trash2, CalendarIcon } from "lucide-react";
+import { Loader2, Upload, X, Plus, Trash2, CalendarIcon, ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -80,6 +80,11 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess, onOpenClientDialog 
   const [estatusPago, setEstatusPago] = useState("anticipo_recibido");
   const [paymentReceipts, setPaymentReceipts] = useState<File[]>([]);
   const [uploadedReceiptUrls, setUploadedReceiptUrls] = useState<string[]>([]);
+  
+  // Reference images
+  const [referenceImages, setReferenceImages] = useState<File[]>([]);
+  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
 
   // Metal data
   const [metalTipo, setMetalTipo] = useState<"oro" | "plata" | "platino">("oro");
@@ -132,6 +137,15 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess, onOpenClientDialog 
         setFechaEntregaEsperada(order.fecha_entrega_esperada ? new Date(order.fecha_entrega_esperada) : undefined);
         setPaymentReceipts([]);
         setUploadedReceiptUrls([]);
+        setReferenceImages([]);
+        
+        // Load existing reference images if editing
+        if (order.imagenes_referencia && Array.isArray(order.imagenes_referencia)) {
+          setUploadedImageUrls(order.imagenes_referencia as string[]);
+        } else {
+          setUploadedImageUrls([]);
+        }
+        
         // NO cargar proyectos al editar una orden
         setClientProspects([]);
         setSelectedProspectId("");
@@ -183,6 +197,8 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess, onOpenClientDialog 
     setFechaEntregaEsperada(undefined);
     setPaymentReceipts([]);
     setUploadedReceiptUrls([]);
+    setReferenceImages([]);
+    setUploadedImageUrls([]);
     setClientProspects([]);
     setSelectedProspectId("");
   };
@@ -322,6 +338,59 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess, onOpenClientDialog 
     setPaymentReceipts(prev => prev.filter((_, i) => i !== index));
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const validFiles = files.filter(file => {
+      const isValidType = file.type.startsWith("image/");
+      const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB
+      if (!isValidType) {
+        toast.error(`${file.name}: Solo se permiten imágenes JPG, PNG, WEBP`);
+        return false;
+      }
+      if (!isValidSize) {
+        toast.error(`${file.name}: El archivo no debe superar 10MB`);
+        return false;
+      }
+      return true;
+    });
+    setReferenceImages(prev => [...prev, ...validFiles]);
+  };
+
+  const removeImage = (index: number) => {
+    setReferenceImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const files = Array.from(e.dataTransfer.files);
+    const validFiles = files.filter(file => {
+      const isValidType = file.type.startsWith("image/");
+      const isValidSize = file.size <= 10 * 1024 * 1024;
+      if (!isValidType) {
+        toast.error(`${file.name}: Solo se permiten imágenes`);
+        return false;
+      }
+      if (!isValidSize) {
+        toast.error(`${file.name}: El archivo no debe superar 10MB`);
+        return false;
+      }
+      return true;
+    });
+    setReferenceImages(prev => [...prev, ...validFiles]);
+  };
+
   const uploadReceipts = async (orderId: string) => {
     const uploadedUrls: string[] = [];
     
@@ -338,6 +407,30 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess, onOpenClientDialog 
 
       const { data } = supabase.storage
         .from('payment-receipts')
+        .getPublicUrl(filePath);
+
+      uploadedUrls.push(data.publicUrl);
+    }
+    
+    return uploadedUrls;
+  };
+
+  const uploadReferenceImages = async (orderId: string) => {
+    const uploadedUrls: string[] = [];
+    
+    for (const file of referenceImages) {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${orderId}_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `${orderId}/${fileName}`;
+
+      const { error } = await supabase.storage
+        .from('reference-images')
+        .upload(filePath, file);
+
+      if (error) throw error;
+
+      const { data } = supabase.storage
+        .from('reference-images')
         .getPublicUrl(filePath);
 
       uploadedUrls.push(data.publicUrl);
@@ -487,6 +580,30 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess, onOpenClientDialog 
         }
       }
 
+      // 2b. Eliminar imágenes de referencia del Storage
+      if (order.imagenes_referencia && Array.isArray(order.imagenes_referencia)) {
+        for (const url of order.imagenes_referencia) {
+          try {
+            const urlObj = new URL(url);
+            const pathSegments = urlObj.pathname.split('/');
+            const bucketIndex = pathSegments.indexOf('reference-images');
+            if (bucketIndex !== -1) {
+              const filePath = pathSegments.slice(bucketIndex + 1).join('/');
+              
+              const { error: storageError } = await supabase.storage
+                .from('reference-images')
+                .remove([filePath]);
+
+              if (storageError) {
+                console.error("Error al eliminar imagen de referencia:", storageError);
+              }
+            }
+          } catch (urlError) {
+            console.error("Error al procesar URL de imagen de referencia:", urlError);
+          }
+        }
+      }
+
       // 3. Intentar eliminar carpeta completa del order_id en storage
       try {
         const { data: files } = await supabase.storage
@@ -577,12 +694,22 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess, onOpenClientDialog 
 
     try {
       let receiptUrls = uploadedReceiptUrls;
+      let imageUrls = uploadedImageUrls;
       
       // Upload receipts if this is a new order with files
       if (paymentReceipts.length > 0) {
         setUploading(true);
         const tempOrderId = order?.id || crypto.randomUUID();
         receiptUrls = await uploadReceipts(tempOrderId);
+        setUploading(false);
+      }
+
+      // Upload reference images if there are new files
+      if (referenceImages.length > 0) {
+        setUploading(true);
+        const tempOrderId = order?.id || crypto.randomUUID();
+        const newImageUrls = await uploadReferenceImages(tempOrderId);
+        imageUrls = [...uploadedImageUrls, ...newImageUrls];
         setUploading(false);
       }
 
@@ -600,6 +727,7 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess, onOpenClientDialog 
         piedra_tipo: piedraTipo,
         notas: notas || null,
         comprobantes_pago: receiptUrls,
+        imagenes_referencia: imageUrls,
         fecha_entrega_esperada: fechaEntregaEsperada ? format(fechaEntregaEsperada, 'yyyy-MM-dd') : null,
       };
 
@@ -1252,18 +1380,118 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess, onOpenClientDialog 
 
             {/* Step 4: Notes */}
             {currentStep === 4 && (
-              <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Notas Adicionales</Label>
-                <Textarea
-                  value={notas}
-                  onChange={(e) => setNotas(e.target.value)}
-                  disabled={loading}
-                  placeholder="Detalles adicionales sobre la orden..."
-                  rows={8}
-                />
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Label>Notas Adicionales</Label>
+                  <Textarea
+                    value={notas}
+                    onChange={(e) => setNotas(e.target.value)}
+                    disabled={loading}
+                    placeholder="Detalles adicionales sobre la orden..."
+                    rows={6}
+                  />
+                </div>
+
+                {/* Reference Images Section */}
+                <div className="space-y-3">
+                  <Label>Imágenes de Referencia del Cliente</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Sube imágenes de referencia proporcionadas por el cliente (máximo 10MB por imagen)
+                  </p>
+                  
+                  {/* Drag and Drop Area */}
+                  <div
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    className={cn(
+                      "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
+                      isDragging 
+                        ? "border-accent bg-accent/5" 
+                        : "border-muted-foreground/30 hover:border-accent/50 hover:bg-accent/5"
+                    )}
+                    onClick={() => document.getElementById('reference-images-input')?.click()}
+                  >
+                    <input
+                      id="reference-images-input"
+                      type="file"
+                      multiple
+                      accept="image/jpeg,image/jpg,image/png,image/webp"
+                      onChange={handleImageUpload}
+                      disabled={loading}
+                      className="hidden"
+                    />
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center">
+                        <Upload className="h-6 w-6 text-accent" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">
+                          {isDragging ? "Suelta las imágenes aquí" : "Arrastra imágenes aquí o haz clic para seleccionar"}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          JPG, PNG, WEBP (máx. 10MB por archivo)
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Uploaded Images Preview */}
+                  {referenceImages.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium">Imágenes nuevas ({referenceImages.length})</p>
+                      <div className="grid grid-cols-4 gap-3">
+                        {referenceImages.map((file, index) => (
+                          <div key={index} className="relative group">
+                            <div className="aspect-square rounded-lg border border-border overflow-hidden bg-muted">
+                              <img
+                                src={URL.createObjectURL(file)}
+                                alt={`Referencia ${index + 1}`}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeImage(index)}
+                              className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                            <p className="text-xs text-muted-foreground mt-1 truncate">
+                              {file.name}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Existing Uploaded Images */}
+                  {uploadedImageUrls.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium">Imágenes guardadas ({uploadedImageUrls.length})</p>
+                      <div className="grid grid-cols-4 gap-3">
+                        {uploadedImageUrls.map((url, index) => (
+                          <div key={index} className="relative group">
+                            <div className="aspect-square rounded-lg border border-border overflow-hidden bg-muted">
+                              <img
+                                src={url}
+                                alt={`Referencia guardada ${index + 1}`}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div className="absolute top-2 left-2">
+                              <Badge variant="secondary" className="text-xs">
+                                Guardada
+                              </Badge>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
             )}
 
           <div className="flex justify-between gap-3 pt-6 mt-6 border-t">

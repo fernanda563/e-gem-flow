@@ -179,6 +179,7 @@ export type Database = {
           forma_pago: string
           gema_observaciones: string | null
           id: string
+          imagenes_referencia: Json | null
           importe_anticipo: number
           joyero_id: string | null
           metal_color: string | null
@@ -209,6 +210,7 @@ export type Database = {
           forma_pago: string
           gema_observaciones?: string | null
           id?: string
+          imagenes_referencia?: Json | null
           importe_anticipo: number
           joyero_id?: string | null
           metal_color?: string | null
@@ -239,6 +241,7 @@ export type Database = {
           forma_pago?: string
           gema_observaciones?: string | null
           id?: string
+          imagenes_referencia?: Json | null
           importe_anticipo?: number
           joyero_id?: string | null
           metal_color?: string | null
