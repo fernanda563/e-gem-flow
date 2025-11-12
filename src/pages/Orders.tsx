@@ -132,7 +132,7 @@ const Orders = () => {
           apellido,
           email
         ),
-        stl_file:stl_files (
+        stl_file:stl_files!orders_stl_file_id_fkey (
           id,
           nombre,
           tipo_accesorio
