@@ -69,8 +69,19 @@ const OrderList = ({ orders, loading, onEdit }: OrderListProps) => {
                     {getProductionStatus(order)}
                   </div>
                   {order.custom_id && (
-                    <div className="text-sm font-medium text-muted-foreground">
-                      {order.custom_id}
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="font-medium text-muted-foreground">
+                        {order.custom_id}
+                      </span>
+                      {order.stl_file && (
+                        <>
+                          <span className="text-muted-foreground">•</span>
+                          <Badge variant="outline" className="text-xs">
+                            <span className="mr-1">📐</span>
+                            {order.stl_file.nombre}
+                          </Badge>
+                        </>
+                      )}
                     </div>
                   )}
                 </div>

@@ -42,6 +42,11 @@ export interface Order {
   imagenes_referencia?: string[];
   fecha_entrega_esperada?: string;
   stl_file_id?: string;
+  stl_file?: {
+    id: string;
+    nombre: string;
+    tipo_accesorio: string;
+  } | null;
   created_at: string;
   clients?: {
     nombre: string;
@@ -126,6 +131,11 @@ const Orders = () => {
           nombre,
           apellido,
           email
+        ),
+        stl_file:stl_files (
+          id,
+          nombre,
+          tipo_accesorio
         )
       `)
       .order("created_at", { ascending: false });
