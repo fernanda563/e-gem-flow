@@ -136,8 +136,14 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess, onOpenClientDialog 
         setNotas(order.notas || "");
         setFechaEntregaEsperada(order.fecha_entrega_esperada ? new Date(order.fecha_entrega_esperada) : undefined);
         setPaymentReceipts([]);
-        setUploadedReceiptUrls([]);
         setReferenceImages([]);
+        
+        // Load existing payment receipts if editing
+        if (order.comprobantes_pago && Array.isArray(order.comprobantes_pago)) {
+          setUploadedReceiptUrls(order.comprobantes_pago as string[]);
+        } else {
+          setUploadedReceiptUrls([]);
+        }
         
         // Load existing reference images if editing
         if (order.imagenes_referencia && Array.isArray(order.imagenes_referencia)) {
@@ -358,6 +364,14 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess, onOpenClientDialog 
 
   const removeImage = (index: number) => {
     setReferenceImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removeUploadedImage = (index: number) => {
+    setUploadedImageUrls(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removeUploadedReceipt = (index: number) => {
+    setUploadedReceiptUrls(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -1095,6 +1109,7 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess, onOpenClientDialog 
                 
                 {paymentReceipts.length > 0 && (
                   <div className="space-y-2 mt-2">
+                    <p className="text-sm font-medium">Comprobantes nuevos ({paymentReceipts.length})</p>
                     {paymentReceipts.map((file, index) => (
                       <div key={index} className="flex items-center justify-between p-2 bg-muted rounded">
                         <div className="flex items-center gap-2">
@@ -1106,6 +1121,36 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess, onOpenClientDialog 
                           variant="ghost"
                           size="sm"
                           onClick={() => removeReceipt(index)}
+                          disabled={loading || uploading}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {uploadedReceiptUrls.length > 0 && (
+                  <div className="space-y-2 mt-2">
+                    <p className="text-sm font-medium">Comprobantes guardados ({uploadedReceiptUrls.length})</p>
+                    {uploadedReceiptUrls.map((url, index) => (
+                      <div key={index} className="flex items-center justify-between p-2 bg-accent/5 border border-accent/20 rounded">
+                        <div className="flex items-center gap-2">
+                          <Upload className="h-4 w-4 text-accent" />
+                          <a 
+                            href={url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-sm text-accent hover:underline truncate flex-1"
+                          >
+                            Ver comprobante {index + 1}
+                          </a>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeUploadedReceipt(index)}
                           disabled={loading || uploading}
                         >
                           <X className="h-4 w-4" />
@@ -1484,6 +1529,13 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess, onOpenClientDialog 
                                 className="w-full h-full object-cover"
                               />
                             </div>
+                            <button
+                              type="button"
+                              onClick={() => removeUploadedImage(index)}
+                              className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
                             <div className="absolute top-2 left-2">
                               <Badge variant="secondary" className="text-xs">
                                 Guardada
