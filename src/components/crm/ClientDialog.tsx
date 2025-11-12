@@ -577,7 +577,7 @@ const ClientDialog = ({ open, onOpenChange, client, onSuccess }: ClientDialogPro
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Correo Electrónico</FormLabel>
+                  <FormLabel>Correo Electrónico *</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input
