@@ -54,6 +54,7 @@ export default function STLCollection() {
   const [fileToDelete, setFileToDelete] = useState<STLFile | null>(null);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [viewerUrl, setViewerUrl] = useState<string | null>(null);
+  const [viewerLoading, setViewerLoading] = useState(false);
   const { isAdmin } = useUserRole();
 
   useEffect(() => {
@@ -133,6 +134,7 @@ export default function STLCollection() {
     setSelectedFile(file);
     setViewerOpen(true);
     setViewerUrl(null);
+    setViewerLoading(true);
 
     const getStoragePath = (url: string) => {
       try {
@@ -153,15 +155,17 @@ export default function STLCollection() {
     if (path) {
       const { data, error } = await supabase.storage
         .from("3d-files")
-        .createSignedUrl(path, 60 * 5);
+        .createSignedUrl(path, 60 * 15); // 15 minutos de vigencia
       if (!error && data?.signedUrl) {
         setViewerUrl(data.signedUrl);
       } else {
+        console.error("Error generando signed URL:", error);
         setViewerUrl(file.stl_file_url);
       }
     } else {
       setViewerUrl(file.stl_file_url);
     }
+    setViewerLoading(false);
   };
   if (loading) {
     return (
@@ -344,7 +348,16 @@ export default function STLCollection() {
           </DialogHeader>
           {selectedFile && (
             <div className="space-y-4">
-              <STLViewer fileUrl={(viewerUrl || selectedFile.stl_file_url)} height="500px" />
+              {viewerLoading || !viewerUrl ? (
+                <div className="h-[500px] flex items-center justify-center border border-border rounded-lg bg-muted">
+                  <div className="text-center space-y-2">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                    <p className="text-muted-foreground">Cargando previsualización...</p>
+                  </div>
+                </div>
+              ) : (
+                <STLViewer fileUrl={viewerUrl} height="500px" />
+              )}
               <div className="flex gap-2">
                 <Button asChild className="flex-1">
                   <a href={selectedFile.stl_file_url} target="_blank" rel="noopener noreferrer">

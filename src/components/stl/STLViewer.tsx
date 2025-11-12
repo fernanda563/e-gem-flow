@@ -13,6 +13,7 @@ export function STLViewer({ fileUrl, height = "400px", width = "100%" }: STLView
   const containerRef = useRef<HTMLDivElement | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const frameRef = useRef<number | null>(null);
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -27,22 +28,34 @@ export function STLViewer({ fileUrl, height = "400px", width = "100%" }: STLView
     const camera = new THREE.PerspectiveCamera(50, widthPx / heightPx, 0.1, 5000);
     camera.position.set(0, 0, 150);
 
-    let renderer: THREE.WebGLRenderer;
+    let renderer: THREE.WebGLRenderer | null = null;
     try {
       renderer = new THREE.WebGLRenderer({ 
         antialias: true, 
         alpha: false,
-        canvas: document.createElement('canvas')
+        powerPreference: 'high-performance'
       });
-      renderer.setSize(widthPx, heightPx);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      renderer.shadowMap.enabled = true;
-      container.appendChild(renderer.domElement);
-      rendererRef.current = renderer;
     } catch (error) {
-      console.error("Error creating WebGLRenderer:", error);
-      return;
+      console.error("Error creando WebGLRenderer, probando WebGL1Renderer:", error);
+      try {
+        // @ts-ignore: WebGL1Renderer existe en three
+        renderer = new THREE.WebGL1Renderer({ 
+          antialias: true, 
+          alpha: false 
+        });
+      } catch (error2) {
+        console.error("Error creando WebGL1Renderer:", error2);
+        return;
+      }
     }
+
+    if (!renderer) return;
+
+    renderer.setSize(widthPx, heightPx);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    container.appendChild(renderer.domElement);
+    rendererRef.current = renderer;
 
     // Lights
     const ambient = new THREE.AmbientLight(0xffffff, 0.6);
@@ -64,13 +77,29 @@ export function STLViewer({ fileUrl, height = "400px", width = "100%" }: STLView
     controls.minDistance = 10;
     controls.maxDistance = 1000;
 
+    // ResizeObserver para ajuste dinámico
+    const resizeObserver = new ResizeObserver(() => {
+      if (!container || !renderer) return;
+      const w = container.clientWidth || widthPx;
+      const h = container.clientHeight || heightPx;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    });
+    resizeObserver.observe(container);
+    resizeObserverRef.current = resizeObserver;
+
     // Load STL
     const loader = new STLLoader();
+    loader.setCrossOrigin('anonymous');
     let mesh: THREE.Mesh | null = null;
+
+    console.info('Cargando STL:', fileUrl);
 
     loader.load(
       fileUrl,
       (geometry) => {
+        console.info('STL cargado. Vértices:', geometry.attributes?.position?.count);
         geometry.computeBoundingBox();
         geometry.center();
 
@@ -100,7 +129,6 @@ export function STLViewer({ fileUrl, height = "400px", width = "100%" }: STLView
       },
       undefined,
       (err) => {
-        // eslint-disable-next-line no-console
         console.error("Error cargando STL:", err);
       }
     );
@@ -129,6 +157,10 @@ export function STLViewer({ fileUrl, height = "400px", width = "100%" }: STLView
       if (frameRef.current) {
         cancelAnimationFrame(frameRef.current);
         frameRef.current = null;
+      }
+      if (resizeObserverRef.current) {
+        resizeObserverRef.current.disconnect();
+        resizeObserverRef.current = null;
       }
       controls.dispose();
       if (mesh) {
