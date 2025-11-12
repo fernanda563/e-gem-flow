@@ -61,9 +61,13 @@ const OrderList = ({ orders, loading, onEdit }: OrderListProps) => {
               {/* Header with badges and actions dropdown */}
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
-                  <h3 className="text-xl font-semibold text-foreground mb-2">
-                    {order.clients?.nombre} {order.clients?.apellido}
-                  </h3>
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="text-xl font-semibold text-foreground">
+                      {order.clients?.nombre} {order.clients?.apellido}
+                    </h3>
+                    {getPaymentStatusBadge(order.estatus_pago)}
+                    {getProductionStatus(order)}
+                  </div>
                   {order.custom_id && (
                     <div className="text-sm font-medium text-muted-foreground">
                       {order.custom_id}
@@ -71,10 +75,7 @@ const OrderList = ({ orders, loading, onEdit }: OrderListProps) => {
                   )}
                 </div>
                 
-                <div className="flex items-center gap-2">
-                  {getPaymentStatusBadge(order.estatus_pago)}
-                  {getProductionStatus(order)}
-                  
+                <div className="flex items-center">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="outline" size="sm">
