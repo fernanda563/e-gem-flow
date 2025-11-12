@@ -1519,31 +1519,30 @@ const OrderDialog = ({ open, onOpenChange, order, onSuccess, onOpenClientDialog 
                   {uploadedImageUrls.length > 0 && (
                     <div className="space-y-2">
                       <p className="text-sm font-medium">Imágenes guardadas ({uploadedImageUrls.length})</p>
-                      <div className="grid grid-cols-4 gap-3">
-                        {uploadedImageUrls.map((url, index) => (
-                          <div key={index} className="relative group">
-                            <div className="aspect-square rounded-lg border border-border overflow-hidden bg-muted">
-                              <img
-                                src={url}
-                                alt={`Referencia guardada ${index + 1}`}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => removeUploadedImage(index)}
-                              className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      {uploadedImageUrls.map((url, index) => (
+                        <div key={index} className="flex items-center justify-between p-2 bg-accent/5 border border-accent/20 rounded">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <ImageIcon className="h-4 w-4 text-accent flex-shrink-0" />
+                            <a 
+                              href={url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-sm text-accent hover:underline truncate"
                             >
-                              <X className="h-4 w-4" />
-                            </button>
-                            <div className="absolute top-2 left-2">
-                              <Badge variant="secondary" className="text-xs">
-                                Guardada
-                              </Badge>
-                            </div>
+                              Ver imagen de referencia {index + 1}
+                            </a>
                           </div>
-                        ))}
-                      </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeUploadedImage(index)}
+                            disabled={loading || uploading}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
