@@ -13,6 +13,7 @@ import Users from "./pages/Users";
 import AuditLog from "./pages/AuditLog";
 import STLCollection from "./pages/STLCollection";
 import STLViewerFullscreen from "./pages/STLViewerFullscreen";
+import CalendarAdmin from "./pages/CalendarAdmin";
 import NotFound from "./pages/NotFound";
 import { DashboardLayout } from "./components/DashboardLayout";
 
@@ -33,6 +34,7 @@ const App = () => (
         <Route path="/users" element={<Users />} />
         <Route path="/stl-collection" element={<STLCollection />} />
         <Route path="/audit-log" element={<AuditLog />} />
+        <Route path="/calendar-admin" element={<CalendarAdmin />} />
       </Route>
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />

@@ -79,6 +79,35 @@ export type Database = {
           },
         ]
       }
+      calendar_role_access: {
+        Row: {
+          calendar_connection_id: string
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Insert: {
+          calendar_connection_id: string
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Update: {
+          calendar_connection_id?: string
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_role_access_calendar_connection_id_fkey"
+            columns: ["calendar_connection_id"]
+            isOneToOne: false
+            referencedRelation: "google_calendar_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           apellido: string
@@ -123,6 +152,45 @@ export type Database = {
           telefono_adicional_codigo_pais?: string | null
           telefono_principal?: string
           telefono_principal_codigo_pais?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      google_calendar_connections: {
+        Row: {
+          access_token: string
+          calendar_id: string
+          calendar_name: string
+          connected_by: string
+          created_at: string
+          id: string
+          is_active: boolean
+          refresh_token: string
+          token_expires_at: string
+          updated_at: string
+        }
+        Insert: {
+          access_token: string
+          calendar_id: string
+          calendar_name: string
+          connected_by: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          refresh_token: string
+          token_expires_at: string
+          updated_at?: string
+        }
+        Update: {
+          access_token?: string
+          calendar_id?: string
+          calendar_name?: string
+          connected_by?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          refresh_token?: string
+          token_expires_at?: string
           updated_at?: string
         }
         Relationships: []
