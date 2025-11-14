@@ -80,12 +80,27 @@ const CalendarAdmin = () => {
   const handleConnectCalendar = async () => {
     setConnecting(true);
     try {
-      const { data, error } = await supabase.functions.invoke('google-calendar-auth', {
-        body: {},
-        method: 'GET',
-      });
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        toast.error("No estás autenticado");
+        return;
+      }
 
-      if (error) throw error;
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google-calendar-auth?action=start`,
+        {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al conectar');
+      }
 
       if (data?.authUrl) {
         window.location.href = data.authUrl;
