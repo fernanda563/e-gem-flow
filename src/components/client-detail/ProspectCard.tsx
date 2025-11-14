@@ -145,30 +145,31 @@ export const ProspectCard = ({ prospect, onClick, className }: ProspectCardProps
             </div>
           )}
 
-          <div>
-            <p className="text-xs font-medium text-muted-foreground mb-2">PIEDRA</p>
-            <div className="text-sm space-y-1">
+          <div className="pt-3 border-t">
+            <p className="text-xs font-medium text-muted-foreground mb-2">DETALLES DEL DISEÑO</p>
+            <div className="grid grid-cols-3 gap-2 text-sm">
               <div>
                 <p className="text-muted-foreground">Incluye piedra:</p>
                 <p className="font-medium capitalize">{prospect.incluye_piedra || "No especificado"}</p>
               </div>
-              {prospect.incluye_piedra === "si" && prospect.tipo_piedra && (
-                <div>
-                  <p className="text-muted-foreground">Tipo:</p>
-                  <p className="font-medium capitalize">{prospect.tipo_piedra}</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {prospect.estilo_anillo && (
-            <div>
-              <p className="text-xs font-medium text-muted-foreground mb-2">ESTILO</p>
-              <div className="text-sm">
-                <p className="font-medium capitalize">{prospect.estilo_anillo.replace(/_/g, " ")}</p>
+              <div>
+                <p className="text-muted-foreground">Tipo de piedra:</p>
+                <p className="font-medium capitalize">
+                  {prospect.incluye_piedra === "si" && prospect.tipo_piedra 
+                    ? prospect.tipo_piedra 
+                    : "N/A"}
+                </p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Estilo:</p>
+                <p className="font-medium capitalize">
+                  {prospect.estilo_anillo 
+                    ? prospect.estilo_anillo.replace(/_/g, " ") 
+                    : "N/A"}
+                </p>
               </div>
             </div>
-          )}
+          </div>
 
           {prospect.largo_aprox && (
             <div className="text-sm">
