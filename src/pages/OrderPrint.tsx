@@ -182,7 +182,6 @@ const { orderId } = useParams<{ orderId: string }>();
       </div>
     );
   }
-  }
 
   if (!order || !companyInfo) {
     return null;
