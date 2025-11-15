@@ -14,33 +14,43 @@ const OrderPrint = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch order data
-        const { data: orderData, error: orderError } = await supabase
+        // Fetch base order
+        const { data: orderBase, error: orderBaseError } = await supabase
           .from("orders")
-          .select(`
-            *,
-            clients (
-              nombre,
-              apellido,
-              telefono_principal,
-              email
-            )
-          `)
+          .select("*")
           .eq("id", orderId)
           .maybeSingle();
 
-        if (orderError) {
-          console.error("Error fetching order:", orderError);
-          console.error("Error details:", JSON.stringify(orderError, null, 2));
-          throw new Error(`Error al cargar orden: ${orderError.message || JSON.stringify(orderError)}`);
+        if (orderBaseError) {
+          console.error("Error fetching base order:", orderBaseError);
+          console.error("Error details:", JSON.stringify(orderBaseError, null, 2));
+          throw new Error(`Error al cargar orden: ${orderBaseError.message || JSON.stringify(orderBaseError)}`);
         }
-        if (!orderData) {
+        if (!orderBase) {
           console.error("No order found with ID:", orderId);
           throw new Error("Orden no encontrada");
         }
 
-        console.log("Order loaded successfully:", orderData);
-        setOrder(orderData);
+        // Fetch client info separately
+        let clientInfo = null;
+        try {
+          const { data: clientData, error: clientError } = await supabase
+            .from("clients")
+            .select("nombre, apellido, telefono_principal, email")
+            .eq("id", orderBase.client_id)
+            .maybeSingle();
+          if (clientError) {
+            console.warn("Could not fetch client info:", clientError);
+          } else {
+            clientInfo = clientData;
+          }
+        } catch (clientErr) {
+          console.warn("Error fetching client info:", clientErr);
+        }
+
+        const combinedOrder = { ...orderBase, clients: clientInfo };
+        console.log("Order loaded successfully:", combinedOrder);
+        setOrder(combinedOrder);
 
         // Fetch company settings (ignore errors if user doesn't have permissions)
         const companyData = {
