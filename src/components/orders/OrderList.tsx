@@ -22,22 +22,22 @@ interface OrderListProps {
 const OrderList = ({ orders, loading, onEdit }: OrderListProps) => {
   const getPaymentStatusBadge = (status: string) => {
     if (status === "liquidado") {
-      return <Badge className="bg-success text-success-foreground">Liquidado</Badge>;
+      return <Badge className="bg-foreground text-background">Liquidado</Badge>;
     }
     return <Badge variant="secondary">Anticipo Recibido</Badge>;
   };
 
   const getProductionStatus = (order: Order) => {
     if (order.estatus_piedra === "piedra_montada" && order.estatus_montura === "entregado_levant") {
-      return <Badge className="bg-success text-success-foreground">Completada</Badge>;
+      return <Badge className="bg-foreground text-background">Completada</Badge>;
     }
-    return <Badge className="bg-accent text-accent-foreground">En Producción</Badge>;
+    return <Badge className="bg-foreground/10 text-foreground border border-foreground">En Producción</Badge>;
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-accent" />
+        <Loader2 className="h-8 w-8 animate-spin text-foreground" />
       </div>
     );
   }

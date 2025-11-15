@@ -48,7 +48,7 @@ export function AppearanceSettingsCard() {
     <Card>
       <CardHeader>
         <div className="flex items-center gap-2">
-          <Palette className="h-5 w-5 text-primary" />
+          <Palette className="h-5 w-5 text-foreground" />
           <CardTitle>Personalización</CardTitle>
         </div>
         <CardDescription>

@@ -55,7 +55,7 @@ const ClientList = ({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-accent" />
+        <Loader2 className="h-8 w-8 animate-spin text-foreground" />
       </div>
     );
   }
@@ -97,7 +97,7 @@ const ClientList = ({
                   
                   {/* Badge de Proyectos Activos */}
                   {Number(client.active_prospects ?? 0) > 0 && (
-                    <Badge variant="outline" className="flex items-center gap-1.5 shrink-0 text-warning border-warning">
+                    <Badge variant="outline" className="flex items-center gap-1.5 shrink-0 text-foreground border-foreground">
                       <Gem className="h-3 w-3" />
                       <span className="text-xs">
                         {client.active_prospects} {client.active_prospects === 1 ? 'proyecto' : 'proyectos'}
