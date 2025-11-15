@@ -167,7 +167,7 @@ export function CompanySettingsCard() {
     <Card>
       <CardHeader>
         <div className="flex items-center gap-2">
-          <Building2 className="h-5 w-5 text-primary" />
+          <Building2 className="h-5 w-5 text-foreground" />
           <CardTitle>Información de la Empresa</CardTitle>
         </div>
         <CardDescription>

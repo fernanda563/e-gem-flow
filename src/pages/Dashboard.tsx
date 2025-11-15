@@ -37,28 +37,28 @@ const Dashboard = () => {
       value: "248",
       change: "+12.5%",
       icon: Users,
-      iconColor: "text-accent",
+      iconColor: "text-foreground",
     },
     {
       title: "Órdenes en Proceso",
       value: "18",
       change: "+8.2%",
       icon: ShoppingCart,
-      iconColor: "text-success",
+      iconColor: "text-foreground",
     },
     {
       title: "Piezas en Taller",
       value: "12",
       change: "-3.1%",
       icon: Gem,
-      iconColor: "text-warning",
+      iconColor: "text-foreground",
     },
     {
       title: "Ingresos del Mes",
       value: "$142,500",
       change: "+18.9%",
       icon: TrendingUp,
-      iconColor: "text-primary",
+      iconColor: "text-foreground",
     },
   ];
 
@@ -111,7 +111,7 @@ const Dashboard = () => {
               <CardContent>
                 <div className="text-3xl font-bold text-foreground">{stat.value}</div>
                 <p className="text-xs text-muted-foreground mt-2">
-                  <span className={stat.change.startsWith('+') ? 'text-success' : 'text-destructive'}>
+                  <span className={stat.change.startsWith('+') ? 'text-foreground' : 'text-foreground/70'}>
                     {stat.change}
                   </span>
                   {' '}desde el mes pasado
@@ -124,13 +124,13 @@ const Dashboard = () => {
         {/* Navigation Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <Card 
-            className="border-border hover:border-accent transition-colors duration-300 cursor-pointer group"
+            className="border-border hover:border-foreground transition-colors duration-300 cursor-pointer group"
             onClick={() => navigate('/crm')}
           >
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-accent/10 rounded-lg group-hover:bg-accent/20 transition-colors">
-                  <Users className="h-6 w-6 text-accent" />
+                <div className="p-3 bg-foreground/10 rounded-lg group-hover:bg-foreground/20 transition-colors">
+                  <Users className="h-6 w-6 text-foreground" />
                 </div>
                 <CardTitle className="text-xl">Gestión de Clientes</CardTitle>
               </div>
@@ -146,20 +146,20 @@ const Dashboard = () => {
                 </div>
                 <div className="flex justify-between text-sm mt-2">
                   <span className="text-muted-foreground">Proyectos activos:</span>
-                  <span className="font-semibold text-accent">32</span>
+                  <span className="font-semibold text-foreground">32</span>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card 
-            className="border-border hover:border-accent transition-colors duration-300 cursor-pointer group"
+            className="border-border hover:border-foreground transition-colors duration-300 cursor-pointer group"
             onClick={() => navigate('/orders')}
           >
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-success/10 rounded-lg group-hover:bg-success/20 transition-colors">
-                  <ShoppingCart className="h-6 w-6 text-success" />
+                <div className="p-3 bg-foreground/10 rounded-lg group-hover:bg-foreground/20 transition-colors">
+                  <ShoppingCart className="h-6 w-6 text-foreground" />
                 </div>
                 <CardTitle className="text-xl">Órdenes de Compra</CardTitle>
               </div>
@@ -175,17 +175,17 @@ const Dashboard = () => {
                 </div>
                 <div className="flex justify-between text-sm mt-2">
                   <span className="text-muted-foreground">Por liquidar:</span>
-                  <span className="font-semibold text-warning">7</span>
+                  <span className="font-semibold text-foreground">7</span>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-border hover:border-accent transition-colors duration-300 cursor-pointer group">
+          <Card className="border-border hover:border-foreground transition-colors duration-300 cursor-pointer group">
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
-                  <Gem className="h-6 w-6 text-primary" />
+                <div className="p-3 bg-foreground/10 rounded-lg group-hover:bg-foreground/20 transition-colors">
+                  <Gem className="h-6 w-6 text-foreground" />
                 </div>
                 <CardTitle className="text-xl">Seguimiento de Producción</CardTitle>
               </div>
@@ -201,7 +201,7 @@ const Dashboard = () => {
                 </div>
                 <div className="flex justify-between text-sm mt-2">
                   <span className="text-muted-foreground">En diseño:</span>
-                  <span className="font-semibold text-accent">6</span>
+                  <span className="font-semibold text-foreground">6</span>
                 </div>
               </div>
             </CardContent>

@@ -193,13 +193,13 @@ const CRM = () => {
           </Card>
 
           <Card 
-            className="border-border hover:border-success transition-colors cursor-pointer"
+            className="border-border hover:border-foreground transition-colors cursor-pointer"
             onClick={() => handleAppointmentAction()}
           >
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
-                <div className="p-2 bg-success/10 rounded-lg">
-                  <Calendar className="h-4 w-4 text-success" />
+                <div className="p-2 bg-foreground/10 rounded-lg">
+                  <Calendar className="h-4 w-4 text-foreground" />
                 </div>
                 Agendar Cita
               </CardTitle>
@@ -207,13 +207,13 @@ const CRM = () => {
           </Card>
 
           <Card 
-            className="border-border hover:border-warning transition-colors cursor-pointer"
+            className="border-border hover:border-foreground transition-colors cursor-pointer"
             onClick={() => handleProspectAction()}
           >
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
-                <div className="p-2 bg-warning/10 rounded-lg">
-              <Gem className="h-4 w-4 text-warning" />
+                <div className="p-2 bg-foreground/10 rounded-lg">
+              <Gem className="h-4 w-4 text-foreground" />
             </div>
             Añadir Proyecto
               </CardTitle>

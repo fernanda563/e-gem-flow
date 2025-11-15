@@ -238,7 +238,7 @@ const Orders = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-warning">{stats.pendingPayment}</div>
+              <div className="text-3xl font-bold text-foreground">{stats.pendingPayment}</div>
             </CardContent>
           </Card>
 

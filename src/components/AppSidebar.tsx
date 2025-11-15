@@ -115,8 +115,8 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center gap-2 px-2 py-4">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent">
-            <Gem className="h-5 w-5 text-accent-foreground" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-foreground">
+            <Gem className="h-5 w-5 text-background" />
           </div>
           {!collapsed && (
             <div className="flex flex-col">

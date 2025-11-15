@@ -74,7 +74,7 @@ export function RegionalSettingsCard() {
     <Card>
       <CardHeader>
         <div className="flex items-center gap-2">
-          <Globe className="h-5 w-5 text-primary" />
+          <Globe className="h-5 w-5 text-foreground" />
           <CardTitle>Regionalización</CardTitle>
         </div>
         <CardDescription>

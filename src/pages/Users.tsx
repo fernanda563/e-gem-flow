@@ -88,15 +88,15 @@ const Users = () => {
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case "administrador":
-        return "bg-destructive/10 text-destructive";
+        return "bg-foreground/10 text-foreground border border-foreground";
       case "disenador":
-        return "bg-primary/10 text-primary";
+        return "bg-foreground/10 text-foreground border border-foreground/50";
       case "joyero":
-        return "bg-warning/10 text-warning";
+        return "bg-foreground/10 text-foreground border border-foreground/50";
       case "gerente_tienda":
-        return "bg-success/10 text-success";
+        return "bg-foreground/10 text-foreground border border-foreground/50";
       case "contador":
-        return "bg-accent/10 text-accent";
+        return "bg-foreground/10 text-foreground border border-foreground/50";
       default:
         return "bg-muted";
     }
