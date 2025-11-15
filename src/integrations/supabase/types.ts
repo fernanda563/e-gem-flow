@@ -569,6 +569,7 @@ export type Database = {
           category: string
           created_at: string | null
           id: string
+          imported_themes: Json | null
           key: string
           updated_at: string | null
           updated_by: string | null
@@ -578,6 +579,7 @@ export type Database = {
           category: string
           created_at?: string | null
           id?: string
+          imported_themes?: Json | null
           key: string
           updated_at?: string | null
           updated_by?: string | null
@@ -587,6 +589,7 @@ export type Database = {
           category?: string
           created_at?: string | null
           id?: string
+          imported_themes?: Json | null
           key?: string
           updated_at?: string | null
           updated_by?: string | null
