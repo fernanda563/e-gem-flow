@@ -26,6 +26,7 @@ interface OrderPrintViewProps {
     estatus_piedra: string | null;
     estatus_montura: string | null;
     notas: string | null;
+    imagenes_referencia?: string[] | null;
     clients: {
       nombre: string;
       apellido: string;
@@ -270,6 +271,65 @@ const OrderPrintView = ({ order, companyInfo }: OrderPrintViewProps) => {
           color: #666;
           margin-top: 16px;
         }
+
+        /* Grid para imágenes de referencia */
+        .reference-images-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 16px;
+          margin-top: 12px;
+        }
+
+        /* Contenedor de cada imagen */
+        .reference-image-container {
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          padding: 8px;
+          background: #f9fafb;
+          text-align: center;
+        }
+
+        /* Imagen de referencia */
+        .reference-image {
+          width: 100%;
+          height: auto;
+          max-height: 250px;
+          object-fit: contain;
+          border-radius: 4px;
+          background: #fff;
+        }
+
+        /* Pie de foto */
+        .image-caption {
+          font-size: 10px;
+          color: #6b7280;
+          margin-top: 6px;
+          font-weight: 500;
+        }
+
+        /* Estilos específicos para impresión */
+        @media print {
+          .reference-images-grid {
+            page-break-inside: avoid;
+            break-inside: avoid;
+          }
+          
+          .reference-image-container {
+            border: 1px solid #d1d5db !important;
+            background: #ffffff !important;
+            page-break-inside: avoid;
+          }
+          
+          .reference-image {
+            max-height: 200px;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          
+          .image-caption {
+            color: #374151 !important;
+          }
+        }
       `}</style>
 
       {/* Header */}
@@ -426,6 +486,26 @@ const OrderPrintView = ({ order, companyInfo }: OrderPrintViewProps) => {
           </tbody>
         </table>
       </div>
+
+      {/* Reference Images - Observaciones Adicionales */}
+      {order.imagenes_referencia && Array.isArray(order.imagenes_referencia) && order.imagenes_referencia.length > 0 && (
+        <div className="full-section">
+          <div className="section-title">Observaciones Adicionales</div>
+          <div className="reference-images-grid">
+            {order.imagenes_referencia.map((imageUrl, index) => (
+              <div key={index} className="reference-image-container">
+                <img 
+                  src={imageUrl} 
+                  alt={`Referencia ${index + 1}`}
+                  className="reference-image"
+                  crossOrigin="anonymous"
+                />
+                <div className="image-caption">Imagen de Referencia {index + 1}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Notes */}
       {order.notas && (
