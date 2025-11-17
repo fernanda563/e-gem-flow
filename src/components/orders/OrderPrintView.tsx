@@ -1,5 +1,7 @@
+import { useEffect, useRef, useState } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { supabase } from "@/integrations/supabase/client";
 
 interface OrderPrintViewProps {
   order: {
@@ -92,6 +94,75 @@ const OrderPrintView = ({ order, companyInfo }: OrderPrintViewProps) => {
     };
     return statusMap[key] || key;
   };
+
+  // Pre-carga de imágenes de referencia desde almacenamiento
+  const [resolvedImages, setResolvedImages] = useState<Record<string, string>>({});
+  const objectUrlsRef = useRef<string[]>([]);
+
+  function getStoragePathFromUrl(publicUrl: string): string | null {
+    try {
+      const u = new URL(publicUrl);
+      const parts = u.pathname.split("/");
+      const bucketIndex = parts.indexOf("reference-images");
+      if (bucketIndex !== -1) {
+        return parts.slice(bucketIndex + 1).join("/");
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  useEffect(() => {
+    let canceled = false;
+    const createdUrls: string[] = [];
+
+    const run = async () => {
+      try {
+        if (!order.imagenes_referencia || !Array.isArray(order.imagenes_referencia) || order.imagenes_referencia.length === 0) {
+          setResolvedImages({});
+          return;
+        }
+
+        const entries = await Promise.all(
+          order.imagenes_referencia.map(async (url) => {
+            try {
+              const path = getStoragePathFromUrl(url);
+              if (!path) return [url, url] as const;
+              const { data, error } = await supabase.storage.from("reference-images").download(path);
+              if (error || !data) return [url, url] as const;
+              const objUrl = URL.createObjectURL(data);
+              createdUrls.push(objUrl);
+              return [url, objUrl] as const;
+            } catch {
+              return [url, url] as const;
+            }
+          })
+        );
+
+        if (!canceled) {
+          const map: Record<string, string> = {};
+          entries.forEach(([orig, res]) => { map[orig] = res; });
+
+          // Revocar urls anteriores
+          objectUrlsRef.current.forEach((u) => URL.revokeObjectURL(u));
+          objectUrlsRef.current = createdUrls;
+
+          setResolvedImages(map);
+        }
+      } finally {
+        // noop
+      }
+    };
+
+    run();
+
+    return () => {
+      canceled = true;
+      // Revocar urls creadas para evitar fugas de memoria
+      createdUrls.forEach((u) => URL.revokeObjectURL(u));
+    };
+  }, [order.imagenes_referencia]);
 
   const saldoPendiente = order.precio_venta - order.importe_anticipo;
 
@@ -500,10 +571,10 @@ const OrderPrintView = ({ order, companyInfo }: OrderPrintViewProps) => {
             {order.imagenes_referencia.map((imageUrl, index) => (
               <div key={index} className="reference-image-container">
                 <img 
-                  src={imageUrl} 
+                  src={resolvedImages[imageUrl] ?? imageUrl}
                   alt={`Referencia ${index + 1}`}
                   className="reference-image"
-                  crossOrigin="anonymous"
+                  referrerPolicy="no-referrer"
                 />
                 <div className="image-caption">Imagen de Referencia {index + 1}</div>
               </div>
