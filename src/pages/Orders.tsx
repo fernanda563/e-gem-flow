@@ -50,6 +50,11 @@ export interface Order {
     tipo_accesorio: string;
     stl_file_url: string;
   } | null;
+  signature_status?: string | null;
+  signature_request_id?: string | null;
+  signed_document_url?: string | null;
+  signature_sent_at?: string | null;
+  signature_completed_at?: string | null;
   created_at: string;
   clients?: {
     nombre: string;
@@ -198,6 +203,32 @@ const Orders = () => {
   const handleOpenPrint = (orderId: string) => {
     setPrintOrderId(orderId);
     setIsPrintDialogOpen(true);
+  };
+
+  const handleSendToSign = async (orderId: string) => {
+    try {
+      toast.loading("Enviando documento a firmar...");
+      
+      const { data, error } = await supabase.functions.invoke('send-to-sign', {
+        body: { orderId }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      toast.dismiss();
+      toast.success("Documento enviado a firmar exitosamente");
+      fetchOrders(); // Refresh to show updated status
+    } catch (error: any) {
+      toast.dismiss();
+      console.error('Error enviando a firmar:', error);
+      toast.error(error.message || "Error al enviar documento a firmar");
+    }
   };
 
   return (
@@ -385,6 +416,7 @@ const Orders = () => {
           onEdit={handleOrderAction}
           onRefresh={fetchOrders}
           onOpenPrint={handleOpenPrint}
+          onSendToSign={handleSendToSign}
         />
       </main>
 

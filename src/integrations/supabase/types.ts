@@ -257,6 +257,11 @@ export type Database = {
           piedra_tipo: string
           precio_venta: number
           referencia_pago: string | null
+          signature_completed_at: string | null
+          signature_request_id: string | null
+          signature_sent_at: string | null
+          signature_status: string | null
+          signed_document_url: string | null
           stl_file_id: string | null
           talla: number | null
           tipo_accesorio: string | null
@@ -290,6 +295,11 @@ export type Database = {
           piedra_tipo: string
           precio_venta: number
           referencia_pago?: string | null
+          signature_completed_at?: string | null
+          signature_request_id?: string | null
+          signature_sent_at?: string | null
+          signature_status?: string | null
+          signed_document_url?: string | null
           stl_file_id?: string | null
           talla?: number | null
           tipo_accesorio?: string | null
@@ -323,6 +333,11 @@ export type Database = {
           piedra_tipo?: string
           precio_venta?: number
           referencia_pago?: string | null
+          signature_completed_at?: string | null
+          signature_request_id?: string | null
+          signature_sent_at?: string | null
+          signature_status?: string | null
+          signed_document_url?: string | null
           stl_file_id?: string | null
           talla?: number | null
           tipo_accesorio?: string | null

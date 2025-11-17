@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Loader2, Eye, ChevronDown, FileText } from "lucide-react";
+import { Edit, Loader2, Eye, ChevronDown, FileText, FileSignature } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,9 +18,10 @@ interface OrderListProps {
   onEdit: (order: Order) => void;
   onRefresh: () => void;
   onOpenPrint: (orderId: string) => void;
+  onSendToSign: (orderId: string) => void;
 }
 
-const OrderList = ({ orders, loading, onEdit, onOpenPrint }: OrderListProps) => {
+const OrderList = ({ orders, loading, onEdit, onOpenPrint, onSendToSign }: OrderListProps) => {
   const handleGeneratePDF = (order: Order) => {
     onOpenPrint(order.id);
   };
@@ -37,6 +38,21 @@ const OrderList = ({ orders, loading, onEdit, onOpenPrint }: OrderListProps) => 
       return <Badge className="bg-foreground text-background">Completada</Badge>;
     }
     return <Badge className="bg-foreground/10 text-foreground border border-foreground">En Producción</Badge>;
+  };
+
+  const getSignatureStatusBadge = (status?: string | null) => {
+    if (!status) return null;
+    
+    if (status === 'signed') {
+      return <Badge className="bg-green-600 text-white">✓ Firmado</Badge>;
+    }
+    if (status === 'pending') {
+      return <Badge variant="secondary">⏳ Pendiente de Firma</Badge>;
+    }
+    if (status === 'declined') {
+      return <Badge variant="destructive">✗ Rechazado</Badge>;
+    }
+    return null;
   };
 
   if (loading) {
@@ -72,6 +88,7 @@ const OrderList = ({ orders, loading, onEdit, onOpenPrint }: OrderListProps) => 
                     </h3>
                     {getPaymentStatusBadge(order.estatus_pago)}
                     {getProductionStatus(order)}
+                    {getSignatureStatusBadge(order.signature_status)}
                   </div>
                   {order.custom_id && (
                     <div className="flex items-center gap-2 text-sm">
@@ -120,6 +137,18 @@ const OrderList = ({ orders, loading, onEdit, onOpenPrint }: OrderListProps) => 
                         <FileText className="h-4 w-4 mr-2" />
                         Generar PDF
                       </DropdownMenuItem>
+                      {order.signature_status !== 'signed' && (
+                        <DropdownMenuItem onClick={() => onSendToSign(order.id)}>
+                          <FileSignature className="h-4 w-4 mr-2" />
+                          {order.signature_status === 'pending' ? 'Reenviar a Firmar' : 'Enviar a Firmar'}
+                        </DropdownMenuItem>
+                      )}
+                      {order.signature_status === 'signed' && order.signed_document_url && (
+                        <DropdownMenuItem onClick={() => window.open(order.signed_document_url!, '_blank')}>
+                          <FileSignature className="h-4 w-4 mr-2" />
+                          Ver Documento Firmado
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuItem onClick={() => {
                         const detailUrl = `/crm/${order.client_id}`;
                         window.open(detailUrl, '_blank');
