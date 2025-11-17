@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import OrderPrintView from "@/components/orders/OrderPrintView";
-import { Loader2, Printer, Download } from "lucide-react";
+import { Loader2, Printer, Download, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -56,6 +56,7 @@ export const OrderPrintDialog = ({ orderId, open, onOpenChange }: OrderPrintDial
   const [companyInfo, setCompanyInfo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sendingToSign, setSendingToSign] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = useReactToPrint({
@@ -125,6 +126,45 @@ export const OrderPrintDialog = ({ orderId, open, onOpenChange }: OrderPrintDial
     } catch (error) {
       console.error("Error generating PDF:", error);
       toast.error("Error al generar el PDF");
+    }
+  };
+
+  const handleSendToSign = async () => {
+    if (!orderId) return;
+
+    try {
+      setSendingToSign(true);
+      toast.info("Enviando documento a firma...");
+
+      const { data, error } = await supabase.functions.invoke('send-to-sign', {
+        body: { orderId }
+      });
+
+      if (error) throw error;
+
+      toast.success("Documento enviado exitosamente a Dropbox Sign");
+      
+      // Refresh order data to show updated signature status
+      const { data: updatedOrder } = await supabase
+        .from("orders")
+        .select("*")
+        .eq("id", orderId)
+        .single();
+      
+      if (updatedOrder) {
+        const { data: clientData } = await supabase
+          .from("clients")
+          .select("nombre, apellido, telefono_principal, email")
+          .eq("id", updatedOrder.client_id)
+          .single();
+        
+        setOrder({ ...updatedOrder, clients: clientData });
+      }
+    } catch (error: any) {
+      console.error("Error sending to sign:", error);
+      toast.error(error.message || "Error al enviar documento a firma");
+    } finally {
+      setSendingToSign(false);
     }
   };
 
@@ -260,10 +300,24 @@ export const OrderPrintDialog = ({ orderId, open, onOpenChange }: OrderPrintDial
                     <Printer className="h-4 w-4 mr-2" />
                     Imprimir
                   </Button>
-                  <Button onClick={handleDownloadPDF} size="sm">
+                  <Button onClick={handleDownloadPDF} size="sm" variant="outline">
                     <Download className="h-4 w-4 mr-2" />
                     Descargar PDF
                   </Button>
+                  {order && (!order.signature_status || order.signature_status === 'declined') && (
+                    <Button 
+                      onClick={handleSendToSign} 
+                      size="sm"
+                      disabled={sendingToSign}
+                    >
+                      {sendingToSign ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Send className="h-4 w-4 mr-2" />
+                      )}
+                      Enviar a firma
+                    </Button>
+                  )}
                 </>
               )}
             </div>
