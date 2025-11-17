@@ -62,15 +62,42 @@ export const OrderPrintDialog = ({ orderId, open, onOpenChange }: OrderPrintDial
     contentRef: printRef,
   });
 
+  const ensureImagesLoaded = async (container: HTMLElement, timeoutMs = 6000) => {
+    const imgs = Array.from(container.querySelectorAll("img"));
+    if (imgs.length === 0) return;
+    await Promise.race([
+      Promise.all(
+        imgs.map(
+          (img) =>
+            new Promise<void>((resolve) => {
+              if ((img as HTMLImageElement).complete) return resolve();
+              const onLoad = () => { cleanup(); resolve(); };
+              const onError = () => { cleanup(); resolve(); };
+              const cleanup = () => {
+                img.removeEventListener("load", onLoad);
+                img.removeEventListener("error", onError);
+              };
+              img.addEventListener("load", onLoad);
+              img.addEventListener("error", onError);
+            })
+        )
+      ),
+      new Promise<void>((res) => setTimeout(res, timeoutMs)),
+    ]);
+  };
+
   const handleDownloadPDF = async () => {
     if (!printRef.current || !order) return;
 
     try {
       toast.info("Generando PDF...");
 
+      await ensureImagesLoaded(printRef.current);
+
       const canvas = await html2canvas(printRef.current, {
         scale: 2,
         useCORS: true,
+        allowTaint: true,
         logging: false,
         backgroundColor: "#ffffff",
       });
