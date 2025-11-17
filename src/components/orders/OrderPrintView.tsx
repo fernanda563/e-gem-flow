@@ -59,33 +59,36 @@ const OrderPrintView = ({ order, companyInfo }: OrderPrintViewProps) => {
     return format(new Date(dateString), "d 'de' MMMM 'de' yyyy", { locale: es });
   };
 
-  const getPaymentStatusText = (status: string) => {
+  const getPaymentStatusText = (status: any) => {
+    const key = getStringValue(status);
     const statusMap: Record<string, string> = {
       anticipo_recibido: "Anticipo Recibido",
       liquidado: "Liquidado",
     };
-    return statusMap[status] || status;
+    return statusMap[key] || key;
   };
 
-  const getStoneStatusText = (status: string | null) => {
-    if (!status) return "—";
+  const getStoneStatusText = (status: any) => {
+    const key = getStringValue(status);
+    if (!key) return "—";
     const statusMap: Record<string, string> = {
       en_busqueda: "En Búsqueda",
       adquirida: "Adquirida",
       piedra_montada: "Piedra Montada",
     };
-    return statusMap[status] || status;
+    return statusMap[key] || key;
   };
 
-  const getMountingStatusText = (status: string | null) => {
-    if (!status) return "—";
+  const getMountingStatusText = (status: any) => {
+    const key = getStringValue(status);
+    if (!key) return "—";
     const statusMap: Record<string, string> = {
       en_espera: "En Espera",
       en_fundicion: "En Fundición",
       en_ensamble: "En Ensamble",
       entregado_levant: "Entregado",
     };
-    return statusMap[status] || status;
+    return statusMap[key] || key;
   };
 
   const saldoPendiente = order.precio_venta - order.importe_anticipo;
@@ -356,7 +359,7 @@ const OrderPrintView = ({ order, companyInfo }: OrderPrintViewProps) => {
             </tr>
             <tr>
               <td>Piedra</td>
-              <td>{order.piedra_tipo.charAt(0).toUpperCase() + order.piedra_tipo.slice(1)}</td>
+              <td>{(() => { const v = getStringValue(order.piedra_tipo); return v ? v.charAt(0).toUpperCase() + v.slice(1) : ""; })()}</td>
             </tr>
             {order.diamante_forma && (
               <tr>
@@ -443,7 +446,7 @@ const OrderPrintView = ({ order, companyInfo }: OrderPrintViewProps) => {
         <div className="full-section">
           <div className="section-title">Notas Adicionales</div>
           <div style={{ fontSize: '11px', marginTop: '8px', lineHeight: '1.5' }}>
-            {order.notas}
+            {getStringValue(order.notas)}
           </div>
         </div>
       )}
