@@ -277,16 +277,16 @@ const OrderPrintView = ({ order, companyInfo }: OrderPrintViewProps) => {
           {companyInfo.logo_light_url && (
             <img
               src={companyInfo.logo_light_url}
-              alt={companyInfo.name}
+              alt={getStringValue(companyInfo.name)}
               className="company-logo"
             />
           )}
         </div>
         <div className="company-info">
-          <div style={{ fontSize: '12px', fontWeight: 700 }}>{companyInfo.name}</div>
-          {companyInfo.address && <div>{companyInfo.address}</div>}
-          {companyInfo.phone && <div>Tel: {companyInfo.phone}</div>}
-          {companyInfo.email && <div>Email: {companyInfo.email}</div>}
+          <div style={{ fontSize: '12px', fontWeight: 700 }}>{getStringValue(companyInfo.name)}</div>
+          {companyInfo.address && <div>{getStringValue(companyInfo.address)}</div>}
+          {companyInfo.phone && <div>Tel: {getStringValue(companyInfo.phone)}</div>}
+          {companyInfo.email && <div>Email: {getStringValue(companyInfo.email)}</div>}
         </div>
       </div>
 
@@ -300,16 +300,16 @@ const OrderPrintView = ({ order, companyInfo }: OrderPrintViewProps) => {
           <div className="info-row">
             <span className="info-label">Nombre:</span>
             <span className="info-value">
-              {order.clients.nombre} {order.clients.apellido}
+              {getStringValue(order.clients.nombre)} {getStringValue(order.clients.apellido)}
             </span>
           </div>
           <div className="info-row">
             <span className="info-label">Teléfono:</span>
-            <span className="info-value">{order.clients.telefono_principal}</span>
+            <span className="info-value">{getStringValue(order.clients.telefono_principal)}</span>
           </div>
           <div className="info-row">
             <span className="info-label">Email:</span>
-            <span className="info-value">{order.clients.email}</span>
+            <span className="info-value">{getStringValue(order.clients.email)}</span>
           </div>
         </div>
 
@@ -317,7 +317,7 @@ const OrderPrintView = ({ order, companyInfo }: OrderPrintViewProps) => {
           <div className="section-title">Información de la Orden</div>
           <div className="info-row">
             <span className="info-label">ID de Orden:</span>
-            <span className="info-value">{order.custom_id || order.id.slice(0, 8)}</span>
+            <span className="info-value">{getStringValue(order.custom_id) || order.id.slice(0, 8)}</span>
           </div>
           <div className="info-row">
             <span className="info-label">Fecha de Creación:</span>
