@@ -167,41 +167,42 @@ const OrderPrintView = ({ order, companyInfo }: OrderPrintViewProps) => {
   const saldoPendiente = order.precio_venta - order.importe_anticipo;
 
   return (
-    <div className="print-container">
-      <style>{`
-        @page {
-          size: letter;
-          margin: 0.75in;
-        }
-
-        @media print {
-          body {
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
+    <div style={{ backgroundColor: '#ffffff', minHeight: '100vh' }}>
+      <div className="print-container">
+        <style>{`
+          @page {
+            size: letter;
+            margin: 0.75in;
           }
 
-          .no-print {
-            display: none !important;
+          @media print {
+            body {
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+            }
+
+            .no-print {
+              display: none !important;
+            }
+
+            * {
+              color: #000 !important;
+              background-color: #fff !important;
+            }
+
+            img {
+              filter: grayscale(100%);
+            }
           }
 
-          * {
-            color: #000 !important;
-            background-color: #fff !important;
+          .print-container {
+            font-family: 'Inter', 'system-ui', sans-serif;
+            max-width: 8.5in;
+            margin: 0 auto;
+            padding: 0;
+            color: #000;
+            background: #fff !important;
           }
-
-          img {
-            filter: grayscale(100%);
-          }
-        }
-
-        .print-container {
-          font-family: 'Inter', 'system-ui', sans-serif;
-          max-width: 8.5in;
-          margin: 0 auto;
-          padding: 0;
-          color: #000;
-          background: #fff;
-        }
 
         .print-header {
           display: flex;
@@ -212,11 +213,12 @@ const OrderPrintView = ({ order, companyInfo }: OrderPrintViewProps) => {
           border-bottom: 2px solid #000;
         }
 
-        .company-logo {
-          max-width: 120px;
-          max-height: 80px;
-          object-fit: contain;
-        }
+          .company-logo {
+            max-width: 200px;
+            max-height: 120px;
+            object-fit: contain;
+            background-color: white;
+          }
 
         .company-info {
           text-align: right;
@@ -593,7 +595,7 @@ const OrderPrintView = ({ order, companyInfo }: OrderPrintViewProps) => {
         </div>
       )}
 
-      {/* Footer */}
+       {/* Footer */}
       <div className="print-footer">
         <div className="signature-line">
           Firma del Cliente
@@ -604,6 +606,7 @@ const OrderPrintView = ({ order, companyInfo }: OrderPrintViewProps) => {
             Este documento es una representación oficial de la orden de compra.
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

@@ -100,6 +100,8 @@ export const OrderPrintDialog = ({ orderId, open, onOpenChange }: OrderPrintDial
         allowTaint: true,
         logging: false,
         backgroundColor: "#ffffff",
+        windowWidth: printRef.current.scrollWidth,
+        windowHeight: printRef.current.scrollHeight,
       });
 
       const imgWidth = 210; // A4 width in mm
