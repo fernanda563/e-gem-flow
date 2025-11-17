@@ -7,6 +7,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProspectCard, type Prospect } from "@/components/client-detail/ProspectCard";
 import { ProspectDetailDialog } from "@/components/client-detail/ProspectDetailDialog";
 import { ProspectStatusDialog } from "@/components/client-detail/ProspectStatusDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import OrderDialog from "@/components/orders/OrderDialog";
+import { generateProspectTitle } from "@/components/client-detail/prospect-utils";
 
 interface ProspectWithClient extends Prospect {
   clients: {
@@ -24,6 +36,9 @@ export default function Projects() {
   const [selectedProspect, setSelectedProspect] = useState<ProspectWithClient | null>(null);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [convertingProspect, setConvertingProspect] = useState<ProspectWithClient | null>(null);
+  const [showOrderDialog, setShowOrderDialog] = useState(false);
+  const [deletingProspect, setDeletingProspect] = useState<ProspectWithClient | null>(null);
 
   useEffect(() => {
     fetchProspects();
@@ -98,6 +113,56 @@ export default function Projects() {
   const handleProspectSaved = () => {
     fetchProspects();
     setDetailDialogOpen(false);
+  };
+
+  const handleConvertToOrder = async (prospect: ProspectWithClient) => {
+    setConvertingProspect(prospect);
+    setShowOrderDialog(true);
+  };
+
+  const handleOrderCreated = async () => {
+    if (!convertingProspect) return;
+    
+    try {
+      const { error } = await supabase
+        .from("prospects")
+        .update({ estado: "convertido" })
+        .eq("id", convertingProspect.id);
+      
+      if (error) throw error;
+      
+      toast.success("Proyecto convertido exitosamente a orden");
+      setShowOrderDialog(false);
+      setConvertingProspect(null);
+      fetchProspects();
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Error al convertir proyecto");
+    }
+  };
+
+  const handleDeleteProspect = (prospect: ProspectWithClient) => {
+    setDeletingProspect(prospect);
+  };
+
+  const confirmDeleteProspect = async () => {
+    if (!deletingProspect) return;
+
+    try {
+      const { error } = await supabase
+        .from("prospects")
+        .delete()
+        .eq("id", deletingProspect.id);
+
+      if (error) throw error;
+
+      toast.success("Proyecto eliminado exitosamente");
+      setDeletingProspect(null);
+      fetchProspects();
+    } catch (error) {
+      console.error("Error deleting prospect:", error);
+      toast.error("Error al eliminar el proyecto");
+    }
   };
 
   // Calcular estadísticas
@@ -203,6 +268,8 @@ export default function Projects() {
               prospect={prospect}
               onClick={() => handleProspectClick(prospect)}
               onEditStatus={() => handleEditStatus(prospect)}
+              onConvertToOrder={() => handleConvertToOrder(prospect)}
+              onDelete={() => handleDeleteProspect(prospect)}
               showClientName
               clientName={`${prospect.clients.nombre} ${prospect.clients.apellido}`}
               clientId={prospect.clients.id}
@@ -228,6 +295,40 @@ export default function Projects() {
           />
         </>
       )}
+
+      {/* Dialog de Nueva Orden */}
+      <OrderDialog
+        open={showOrderDialog}
+        onOpenChange={setShowOrderDialog}
+        prospect={convertingProspect}
+        clientId={convertingProspect?.clients.id}
+        onSuccess={handleOrderCreated}
+      />
+
+      {/* Dialog de Confirmación de Eliminación */}
+      <AlertDialog 
+        open={!!deletingProspect} 
+        onOpenChange={(open) => !open && setDeletingProspect(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar proyecto?</AlertDialogTitle>
+            <AlertDialogDescription>
+              ¿Estás seguro de eliminar el proyecto "{deletingProspect ? generateProspectTitle(deletingProspect) : ""}"? 
+              Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDeleteProspect} 
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
