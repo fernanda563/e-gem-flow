@@ -181,7 +181,7 @@ export const OrderPrintDialog = ({ orderId, open, onOpenChange }: OrderPrintDial
 
         const companyData = {
           name: "Levant Jewelry",
-          logo_light_url: null,
+          logo_light_url: "/images/relevee-logo.png",
           address: null,
           phone: null,
           email: null,
