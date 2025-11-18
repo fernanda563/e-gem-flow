@@ -105,6 +105,22 @@ Deno.serve(async (req) => {
     // Prepare document title
     const documentTitle = `Orden de Compra - ${orderData.custom_id || orderData.id.slice(0, 8)}`;
 
+    // Determine Dropbox Sign mode (test or production) from system settings
+    // Default to test mode to avoid payment_required errors if not configured
+    const { data: signingSetting, error: signingSettingError } = await supabase
+      .from('system_settings')
+      .select('value')
+      .eq('category', 'signing')
+      .eq('key', 'mode')
+      .maybeSingle();
+
+    if (signingSettingError) {
+      console.warn('No se pudo leer signing.mode, usando TEST por defecto:', signingSettingError);
+    }
+
+    const testMode = signingSetting?.value?.value === 'production' ? 0 : 1;
+    console.log('Modo de firma seleccionado:', testMode === 1 ? 'TEST' : 'PRODUCCIÓN');
+
     // Send signature request to Dropbox Sign
     const dropboxResponse = await fetch('https://api.hellosign.com/v3/signature_request/send', {
       method: 'POST',
@@ -113,7 +129,7 @@ Deno.serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        test_mode: 0, // Production mode - allows sending to any email
+        test_mode: testMode, // 1 for testing (default), 0 for production
         title: documentTitle,
         subject: `Firma de Orden de Compra - ${orderData.clients.nombre} ${orderData.clients.apellido}`,
         message: 'Por favor firma este documento para confirmar tu orden de compra de joyería personalizada.',
