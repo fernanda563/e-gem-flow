@@ -292,7 +292,7 @@ const OrderPrintView = ({ order, companyInfo }: OrderPrintViewProps) => {
         }
 
         .table-section td {
-          padding: 6px 8px;
+          padding: 3px 8px;
           font-size: 10px;
           line-height: 1.5;
         }
@@ -311,7 +311,7 @@ const OrderPrintView = ({ order, companyInfo }: OrderPrintViewProps) => {
         }
 
         .financial-table td {
-          padding: 6px 8px;
+          padding: 3px 8px;
           font-size: 10px;
           line-height: 1.5;
         }
