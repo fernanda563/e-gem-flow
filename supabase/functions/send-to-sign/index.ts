@@ -87,17 +87,16 @@ Deno.serve(async (req) => {
 
     const orderData = order as unknown as OrderData;
 
-    // Check if already sent
-    if (orderData.signature_status === 'pending' || orderData.signature_status === 'signed') {
+    // Check if already signed (cannot regenerate)
+    if (orderData.signature_status === 'signed') {
       return new Response(
-        JSON.stringify({ 
-          error: orderData.signature_status === 'signed' 
-            ? 'Esta orden ya está firmada' 
-            : 'Esta orden ya fue enviada a firmar' 
-        }),
+        JSON.stringify({ error: 'Esta orden ya está firmada' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    // Allow regeneration for declined orders or expired URLs
+    // If status is 'pending', we can regenerate (the frontend will handle reuse logic)
 
     console.log('Preparando documento para enviar a Dropbox Sign');
     console.log('PDF URL:', pdfUrl);

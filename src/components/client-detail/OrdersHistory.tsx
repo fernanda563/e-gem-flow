@@ -63,10 +63,10 @@ export const OrdersHistory = ({ clientId }: OrdersHistoryProps) => {
     try {
       const { data, error } = await supabase
         .from("orders")
-        .select(`
-          *,
-          stl_file:stl_files(id, nombre, tipo_accesorio, stl_file_url)
-        `)
+      .select(`
+        *,
+        stl_file:stl_files!orders_stl_file_id_fkey(id, nombre, tipo_accesorio, stl_file_url)
+      `)
         .eq("client_id", clientId)
         .order("created_at", { ascending: false });
 
