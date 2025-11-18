@@ -301,6 +301,7 @@ const OrderPrintView = ({ order, companyInfo }: OrderPrintViewProps) => {
           font-weight: 600;
           width: 140px;
           background-color: #ffffff;
+          padding-left: 0;
         }
 
         .financial-table {
@@ -319,6 +320,7 @@ const OrderPrintView = ({ order, companyInfo }: OrderPrintViewProps) => {
           font-weight: 600;
           width: 140px;
           background-color: #ffffff;
+          padding-left: 0;
         }
 
         .financial-table td:last-child {
