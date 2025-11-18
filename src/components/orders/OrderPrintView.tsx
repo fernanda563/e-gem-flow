@@ -647,12 +647,11 @@ const OrderPrintView = ({ order, companyInfo }: OrderPrintViewProps) => {
         pageBreakInside: 'avoid'
       }}>
         <div style={{
-          display: 'flex',
-          gap: '24px',
-          justifyContent: 'space-between'
+          maxWidth: '400px',
+          margin: '0 auto'
         }}>
           {/* Área de firma del cliente */}
-          <div style={{ flex: 1 }}>
+          <div>
             <div style={{
               fontWeight: 700,
               marginBottom: '8px',
@@ -666,36 +665,6 @@ const OrderPrintView = ({ order, companyInfo }: OrderPrintViewProps) => {
             <div style={{
               border: '1px solid #000',
               height: '80px',
-              backgroundColor: 'white',
-              marginBottom: '8px'
-            }}></div>
-            <div style={{
-              fontSize: '9px',
-              textAlign: 'center',
-              color: '#000',
-              borderTop: '1px solid #000',
-              paddingTop: '4px',
-              lineHeight: 1.3
-            }}>
-              {order.clients.nombre} {order.clients.apellido}
-            </div>
-          </div>
-
-          {/* Área de fecha */}
-          <div style={{ flex: 1 }}>
-            <div style={{
-              fontWeight: 700,
-              marginBottom: '8px',
-              fontSize: '11px',
-              color: '#000',
-              textTransform: 'uppercase',
-              letterSpacing: '0.02em'
-            }}>
-              Fecha
-            </div>
-            <div style={{
-              border: '1px solid #000',
-              height: '50px',
               backgroundColor: 'white'
             }}></div>
           </div>
