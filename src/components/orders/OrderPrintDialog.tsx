@@ -218,9 +218,10 @@ export const OrderPrintDialog = ({ orderId, open, onOpenChange, autoSendToSign =
         order.pending_signature_pdf_url &&
         isSignUrlValid(order.embedded_sign_url_expires_at)
       ) {
-        // Generar link de la app y copiar
+        // Generar link de la app, copiar y abrir automáticamente
         const appLink = generateAppSignLink(order.embedded_sign_url);
         await navigator.clipboard.writeText(appLink);
+        window.open(appLink, "_blank");
         
         toast.success("URL de firma copiada al portapapeles");
         setSendingToSign(false);
@@ -261,8 +262,10 @@ export const OrderPrintDialog = ({ orderId, open, onOpenChange, autoSendToSign =
         setSignUrl(data.signUrl);
         setSignUrlExpires(data.expiresAt);
         
-        // Copiar automáticamente al portapapeles
-        await navigator.clipboard.writeText(data.signUrl);
+        // Generar link de la app, copiar y abrir automáticamente
+        const appLink = generateAppSignLink(data.signUrl);
+        await navigator.clipboard.writeText(appLink);
+        window.open(appLink, "_blank");
         toast.success("URL de firma copiada al portapapeles");
       }
       
