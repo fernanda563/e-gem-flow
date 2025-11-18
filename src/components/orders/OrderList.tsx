@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Loader2, Eye, ChevronDown, FileText, FileSignature } from "lucide-react";
+import { Edit, Loader2, Eye, ChevronDown, FileText, FileSignature, Check, Clock, X, Box } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,13 +44,28 @@ const OrderList = ({ orders, loading, onEdit, onOpenPrint, onSendToSign }: Order
     if (!status) return null;
     
     if (status === 'signed') {
-      return <Badge className="bg-green-600 text-white">✓ Firmado</Badge>;
+      return (
+        <Badge className="bg-green-600 text-white flex items-center gap-1">
+          <Check className="h-3 w-3" />
+          Firmado
+        </Badge>
+      );
     }
     if (status === 'pending') {
-      return <Badge variant="secondary">⏳ Pendiente de Firma</Badge>;
+      return (
+        <Badge variant="secondary" className="flex items-center gap-1">
+          <Clock className="h-3 w-3" />
+          Pendiente de Firma
+        </Badge>
+      );
     }
     if (status === 'declined') {
-      return <Badge variant="destructive">✗ Rechazado</Badge>;
+      return (
+        <Badge variant="destructive" className="flex items-center gap-1">
+          <X className="h-3 w-3" />
+          Rechazado
+        </Badge>
+      );
     }
     return null;
   };
@@ -108,9 +123,9 @@ const OrderList = ({ orders, loading, onEdit, onOpenPrint, onSendToSign }: Order
                           >
                             <Badge 
                               variant="outline" 
-                              className="text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors"
+                              className="text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors flex items-center gap-1"
                             >
-                              <span className="mr-1">📐</span>
+                              <Box className="h-3 w-3" />
                               Ver STL
                             </Badge>
                           </a>
@@ -191,7 +206,7 @@ const OrderList = ({ orders, loading, onEdit, onOpenPrint, onSendToSign }: Order
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Anticipo</p>
-                  <p className="text-lg font-semibold text-accent">
+                  <p className="text-lg font-semibold text-foreground">
                     ${Number(order.importe_anticipo).toLocaleString("es-MX")}
                   </p>
                 </div>
@@ -228,7 +243,7 @@ const OrderList = ({ orders, loading, onEdit, onOpenPrint, onSendToSign }: Order
                 {order.fecha_entrega_esperada && (
                   <>
                     <span className="text-muted-foreground">•</span>
-                    <span className="text-accent">
+                    <span className="text-foreground font-medium">
                       Entrega: {format(new Date(order.fecha_entrega_esperada), "dd 'de' MMMM, yyyy", { locale: es })}
                     </span>
                   </>
