@@ -40,6 +40,10 @@ export const InternalOrderCard = ({
     return types[type] || type;
   };
 
+  const capitalizeFirst = (text: string) => {
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -113,7 +117,7 @@ export const InternalOrderCard = ({
               ${order.precio_compra.toLocaleString('es-MX')} {order.moneda}
             </p>
             <p className="text-sm">
-              <span className="font-medium">Estatus:</span> {order.estatus_pago}
+              <span className="font-medium">Estatus:</span> {capitalizeFirst(order.estatus_pago)}
             </p>
           </div>
 
