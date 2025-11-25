@@ -46,7 +46,7 @@ const Suppliers = () => {
     if (isAdmin() && !roleLoading) {
       fetchSuppliers();
     }
-  }, [isAdmin, roleLoading]);
+  }, [roleLoading]);
 
   useEffect(() => {
     if (searchTerm) {
