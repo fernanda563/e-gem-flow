@@ -489,6 +489,7 @@ export type Database = {
       }
       purchase_orders_internal: {
         Row: {
+          batch_id: string | null
           cantidad: number
           certificado: string | null
           claridad: string | null
@@ -505,6 +506,7 @@ export type Database = {
           forma: string | null
           id: string
           imagenes_producto: Json | null
+          is_batch_primary: boolean
           medidas: string | null
           moneda: string
           notas_adicionales: string | null
@@ -523,6 +525,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          batch_id?: string | null
           cantidad?: number
           certificado?: string | null
           claridad?: string | null
@@ -539,6 +542,7 @@ export type Database = {
           forma?: string | null
           id?: string
           imagenes_producto?: Json | null
+          is_batch_primary?: boolean
           medidas?: string | null
           moneda?: string
           notas_adicionales?: string | null
@@ -557,6 +561,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          batch_id?: string | null
           cantidad?: number
           certificado?: string | null
           claridad?: string | null
@@ -573,6 +578,7 @@ export type Database = {
           forma?: string | null
           id?: string
           imagenes_producto?: Json | null
+          is_batch_primary?: boolean
           medidas?: string | null
           moneda?: string
           notas_adicionales?: string | null
