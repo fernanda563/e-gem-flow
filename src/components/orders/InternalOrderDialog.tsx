@@ -1012,16 +1012,18 @@ export const InternalOrderDialog = ({
         </div>
 
         <div className="flex justify-between">
-          <Button
-            variant="outline"
-            onClick={handleBack}
-            disabled={currentStep === 1 || loading}
-          >
-            <ChevronLeft className="h-4 w-4 mr-2" />
-            Atrás
-          </Button>
+          {currentStep > 1 && (
+            <Button
+              variant="outline"
+              onClick={handleBack}
+              disabled={loading}
+            >
+              <ChevronLeft className="h-4 w-4 mr-2" />
+              Atrás
+            </Button>
+          )}
 
-          <Button onClick={handleNext} disabled={loading}>
+          <Button onClick={handleNext} disabled={loading} className={currentStep === 1 ? "ml-auto" : ""}>
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
