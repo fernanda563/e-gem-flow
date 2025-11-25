@@ -874,43 +874,45 @@ export const InternalOrderDialog = ({
         </DialogHeader>
 
         {/* Stepper visual */}
-        <div className="flex items-center justify-between mb-8 px-4">
-          {[1, 2, 3, 4, 5].map((step) => (
-            <div key={step} className="flex items-center flex-1">
-              <div className="flex flex-col items-center flex-1">
-                <div
-                  className={cn(
-                    "w-10 h-10 rounded-full flex items-center justify-center border-2 font-semibold transition-colors",
-                    currentStep === step && "border-accent bg-accent text-accent-foreground",
-                    currentStep > step && "border-primary bg-primary text-primary-foreground",
-                    currentStep < step && "border-muted-foreground/30 text-muted-foreground"
-                  )}
-                >
-                  {currentStep > step ? "✓" : step}
+        <div className="flex justify-center mb-8 px-8">
+          <div className="flex items-center w-full max-w-3xl">
+            {[1, 2, 3, 4, 5].map((step) => (
+              <div key={step} className="flex items-center flex-1">
+                <div className="flex flex-col items-center w-full">
+                  <div
+                    className={cn(
+                      "w-10 h-10 rounded-full flex items-center justify-center border-2 font-semibold transition-colors",
+                      currentStep === step && "border-accent bg-accent text-accent-foreground",
+                      currentStep > step && "border-primary bg-primary text-primary-foreground",
+                      currentStep < step && "border-muted-foreground/30 text-muted-foreground"
+                    )}
+                  >
+                    {currentStep > step ? "✓" : step}
+                  </div>
+                  <span
+                    className={cn(
+                      "text-xs mt-2 font-medium transition-colors text-center whitespace-nowrap",
+                      currentStep >= step ? "text-foreground" : "text-muted-foreground"
+                    )}
+                  >
+                    {step === 1 && "Proveedor"}
+                    {step === 2 && "Producto"}
+                    {step === 3 && "Especificaciones"}
+                    {step === 4 && "Archivos"}
+                    {step === 5 && "Pago"}
+                  </span>
                 </div>
-                <span
-                  className={cn(
-                    "text-xs mt-2 font-medium transition-colors text-center",
-                    currentStep >= step ? "text-foreground" : "text-muted-foreground"
-                  )}
-                >
-                  {step === 1 && "Proveedor"}
-                  {step === 2 && "Producto"}
-                  {step === 3 && "Especificaciones"}
-                  {step === 4 && "Archivos"}
-                  {step === 5 && "Pago"}
-                </span>
+                {step < 5 && (
+                  <div
+                    className={cn(
+                      "h-0.5 flex-1 mx-4 transition-colors",
+                      currentStep > step ? "bg-primary" : "bg-muted-foreground/30"
+                    )}
+                  />
+                )}
               </div>
-              {step < 5 && (
-                <div
-                  className={cn(
-                    "h-0.5 flex-1 mx-2 transition-colors",
-                    currentStep > step ? "bg-primary" : "bg-muted-foreground/30"
-                  )}
-                />
-              )}
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         <div className="py-4">
