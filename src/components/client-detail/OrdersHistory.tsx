@@ -256,7 +256,7 @@ export const OrdersHistory = ({ clientId }: OrdersHistoryProps) => {
                           <ChevronDown className="h-4 w-4 ml-1" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuContent align="end" className="w-56">
                         <DropdownMenuItem onClick={() => handleEdit(order)}>
                           <Edit className="h-4 w-4 mr-2" />
                           Editar

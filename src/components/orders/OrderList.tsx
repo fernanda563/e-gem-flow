@@ -187,7 +187,7 @@ const OrderList = ({ orders, loading, onEdit, onOpenPrint, onSendToSign }: Order
                     <ChevronDown className="h-4 w-4 ml-1" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuItem onClick={() => onEdit(order)}>
                     <Edit className="h-4 w-4 mr-2" />
                     Editar
