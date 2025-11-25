@@ -32,6 +32,7 @@ export interface InternalOrder {
   // Batch tracking
   batch_id?: string;
   is_batch_primary?: boolean;
+  batch_count?: number;
   
   // Proveedor
   supplier_id?: string;

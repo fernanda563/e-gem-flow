@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { InternalOrder, Supplier } from "@/types/internal-orders";
 import { Package, FileText, Image as ImageIcon, Edit, Trash2 } from "lucide-react";
 import { format } from "date-fns";
@@ -48,6 +49,11 @@ export const InternalOrderCard = ({
               <Package className="h-5 w-5" />
               Orden Interna #{order.id.slice(0, 8)}
             </CardTitle>
+            {order.batch_id && order.batch_count && (
+              <Badge variant="secondary" className="mt-2">
+                Lote de {order.batch_count} diamantes
+              </Badge>
+            )}
           </div>
         </div>
       </CardHeader>
