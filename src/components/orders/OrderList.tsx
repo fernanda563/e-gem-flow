@@ -1,4 +1,4 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Loader2, Eye, ChevronDown, FileText, FileSignature, Check, Clock, X, Box, DollarSign, Settings } from "lucide-react";
@@ -111,162 +111,161 @@ const OrderList = ({ orders, loading, onEdit, onOpenPrint, onSendToSign }: Order
   return (
     <div className="space-y-4">
       {orders.map((order) => (
-        <Card key={order.id} className="border-border hover:shadow-md transition-shadow">
-          <CardContent className="pt-6">
-            <div className="space-y-3">
-              {/* Header with badges and actions dropdown */}
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <h3 className="text-xl font-semibold text-foreground mb-2">
+        <Card key={order.id}>
+          <CardHeader>
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <CardTitle>
                     {order.clients?.nombre} {order.clients?.apellido}
-                  </h3>
-                  <div className="flex items-center gap-2 flex-wrap mb-4">
+                  </CardTitle>
+                  <div className="flex items-center gap-2">
                     {getPaymentStatusBadge(order.estatus_pago)}
                     {getProductionStatus(order)}
                     {getSignatureStatusBadge(order.signature_status)}
                   </div>
-                  {order.custom_id && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="font-medium text-muted-foreground">
-                        {order.custom_id}
-                      </span>
-                      {order.stl_file && (
-                        <>
-                          <span className="text-muted-foreground">•</span>
-                          <a
-                            href={`/stl-viewer-fullscreen?url=${encodeURIComponent(order.stl_file.stl_file_url)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                            }}
+                </div>
+                {order.custom_id && (
+                  <div className="flex items-center gap-2 text-sm mt-2">
+                    <span className="font-medium text-muted-foreground">
+                      {order.custom_id}
+                    </span>
+                    {order.stl_file && (
+                      <>
+                        <span className="text-muted-foreground">•</span>
+                        <a
+                          href={`/stl-viewer-fullscreen?url=${encodeURIComponent(order.stl_file.stl_file_url)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          }}
+                        >
+                          <Badge 
+                            variant="outline" 
+                            className="text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors flex items-center gap-1"
                           >
-                            <Badge 
-                              variant="outline" 
-                              className="text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors flex items-center gap-1"
-                            >
-                              <Box className="h-3 w-3" />
-                              Ver STL
-                            </Badge>
-                          </a>
-                        </>
-                      )}
-                    </div>
-                  )}
-                </div>
-                
-                <div className="flex items-center">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm">
-                        Acciones
-                        <ChevronDown className="h-4 w-4 ml-1" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem onClick={() => onEdit(order)}>
-                        <Edit className="h-4 w-4 mr-2" />
-                        Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleGeneratePDF(order)}>
-                        <FileText className="h-4 w-4 mr-2" />
-                        Generar PDF
-                      </DropdownMenuItem>
-                      {order.signature_status !== 'signed' && (
-                        <DropdownMenuItem onClick={() => onSendToSign(order.id)}>
-                          <FileSignature className="h-4 w-4 mr-2" />
-                          {order.signature_status === 'pending' ? 'Reenviar a Firmar' : 'Enviar a Firmar'}
-                        </DropdownMenuItem>
-                      )}
-                      {order.signature_status === 'signed' && order.signed_document_url && (
-                        <DropdownMenuItem onClick={() => window.open(order.signed_document_url!, '_blank')}>
-                          <FileSignature className="h-4 w-4 mr-2" />
-                          Ver Documento Firmado
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuItem onClick={() => {
-                        const detailUrl = `/crm/${order.client_id}`;
-                        window.open(detailUrl, '_blank');
-                      }}>
-                        <Eye className="h-4 w-4 mr-2" />
-                        Ver Detalles
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
-
-              {/* Product Info */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="font-medium text-foreground">Metal:</span>
-                  <span className="text-muted-foreground ml-2">
-                    {order.metal_tipo === "oro" && `Oro ${order.metal_pureza} ${order.metal_color}`}
-                    {order.metal_tipo === "plata" && "Plata"}
-                    {order.metal_tipo === "platino" && "Platino"}
-                  </span>
-                </div>
-                <div>
-                  <span className="font-medium text-foreground">Piedra:</span>
-                  <span className="text-muted-foreground ml-2">
-                    {order.piedra_tipo === "diamante" &&
-                      `Diamante ${order.diamante_quilataje}ct ${order.diamante_forma}`}
-                    {order.piedra_tipo === "gema" && "Gema"}
-                  </span>
-                </div>
-              </div>
-
-              {/* Financial Info */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-border">
-                <div>
-                  <p className="text-xs text-muted-foreground">Precio Total</p>
-                  <p className="text-lg font-semibold text-foreground">
-                    ${Number(order.precio_venta).toLocaleString("es-MX")}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Anticipo</p>
-                  <p className="text-lg font-semibold text-foreground">
-                    ${Number(order.importe_anticipo).toLocaleString("es-MX")}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Saldo Pendiente</p>
-                  <p className="text-lg font-semibold text-warning">
-                    $
-                    {(Number(order.precio_venta) - Number(order.importe_anticipo)).toLocaleString(
-                      "es-MX"
+                            <Box className="h-3 w-3" />
+                            Ver STL
+                          </Badge>
+                        </a>
+                      </>
                     )}
-                  </p>
-                </div>
-              </div>
-
-              {/* Payment Method and Reference */}
-              <div className="flex flex-col gap-2 text-sm text-muted-foreground pt-2">
-                <div>
-                  <span className="font-medium text-foreground">Forma de Pago:</span>
-                  <span className="ml-2 capitalize">{order.forma_pago}</span>
-                </div>
-                {order.referencia_pago && (
-                  <div>
-                    <span className="font-medium text-foreground">Referencia:</span>
-                    <span className="ml-2 font-mono">{order.referencia_pago}</span>
                   </div>
                 )}
               </div>
+              
+              {/* Actions Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    Acciones
+                    <ChevronDown className="h-4 w-4 ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={() => onEdit(order)}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Editar
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleGeneratePDF(order)}>
+                    <FileText className="h-4 w-4 mr-2" />
+                    Generar PDF
+                  </DropdownMenuItem>
+                  {order.signature_status !== 'signed' && (
+                    <DropdownMenuItem onClick={() => onSendToSign(order.id)}>
+                      <FileSignature className="h-4 w-4 mr-2" />
+                      {order.signature_status === 'pending' ? 'Reenviar a Firmar' : 'Enviar a Firmar'}
+                    </DropdownMenuItem>
+                  )}
+                  {order.signature_status === 'signed' && order.signed_document_url && (
+                    <DropdownMenuItem onClick={() => window.open(order.signed_document_url!, '_blank')}>
+                      <FileSignature className="h-4 w-4 mr-2" />
+                      Ver Documento Firmado
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem onClick={() => {
+                    const detailUrl = `/crm/${order.client_id}`;
+                    window.open(detailUrl, '_blank');
+                  }}>
+                    <Eye className="h-4 w-4 mr-2" />
+                    Ver Detalles
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </CardHeader>
 
-              {/* Date */}
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <span>
-                  Creada el {format(new Date(order.created_at), "dd 'de' MMMM, yyyy", { locale: es })}
-                </span>
+          <CardContent className="space-y-4">
+            {/* Product Info */}
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <h4 className="font-semibold text-sm">Metal</h4>
+                <p className="text-sm">
+                  {order.metal_tipo === "oro" && `Oro ${order.metal_pureza} ${order.metal_color}`}
+                  {order.metal_tipo === "plata" && "Plata"}
+                  {order.metal_tipo === "platino" && "Platino"}
+                </p>
+              </div>
+              <div className="space-y-2">
+                <h4 className="font-semibold text-sm">Piedra</h4>
+                <p className="text-sm">
+                  {order.piedra_tipo === "diamante" &&
+                    `Diamante ${order.diamante_quilataje}ct ${order.diamante_forma}`}
+                  {order.piedra_tipo === "gema" && "Gema"}
+                </p>
+              </div>
+            </div>
+
+            {/* Financial Info */}
+            <div className="grid md:grid-cols-3 gap-4 border-t pt-4">
+              <div className="space-y-2">
+                <h4 className="font-semibold text-sm">Precio Total</h4>
+                <p className="text-lg font-semibold text-primary">
+                  ${Number(order.precio_venta).toLocaleString("es-MX")}
+                </p>
+              </div>
+              <div className="space-y-2">
+                <h4 className="font-semibold text-sm">Anticipo</h4>
+                <p className="text-lg font-semibold">
+                  ${Number(order.importe_anticipo).toLocaleString("es-MX")}
+                </p>
+              </div>
+              <div className="space-y-2">
+                <h4 className="font-semibold text-sm">Saldo Pendiente</h4>
+                <p className="text-lg font-semibold text-warning">
+                  $
+                  {(Number(order.precio_venta) - Number(order.importe_anticipo)).toLocaleString(
+                    "es-MX"
+                  )}
+                </p>
+              </div>
+            </div>
+
+            {/* Payment Info */}
+            <div className="grid md:grid-cols-2 gap-4 border-t pt-4">
+              <div className="space-y-2">
+                <h4 className="font-semibold text-sm">Forma de Pago</h4>
+                <p className="text-sm capitalize">{order.forma_pago}</p>
+                {order.referencia_pago && (
+                  <p className="text-sm">
+                    <span className="font-medium">Referencia:</span>{" "}
+                    <span className="font-mono">{order.referencia_pago}</span>
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <h4 className="font-semibold text-sm">Fechas</h4>
+                <p className="text-sm">
+                  <span className="font-medium">Creada:</span>{" "}
+                  {format(new Date(order.created_at), "dd 'de' MMMM, yyyy", { locale: es })}
+                </p>
                 {order.fecha_entrega_esperada && (
-                  <>
-                    <span className="text-muted-foreground">•</span>
-                    <span className="text-foreground font-medium">
-                      Entrega: {format(new Date(order.fecha_entrega_esperada), "dd 'de' MMMM, yyyy", { locale: es })}
-                    </span>
-                  </>
+                  <p className="text-sm">
+                    <span className="font-medium">Entrega esperada:</span>{" "}
+                    {format(new Date(order.fecha_entrega_esperada), "dd 'de' MMMM, yyyy", { locale: es })}
+                  </p>
                 )}
               </div>
             </div>
