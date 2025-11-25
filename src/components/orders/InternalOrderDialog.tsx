@@ -140,11 +140,6 @@ export const InternalOrderDialog = ({
       toast.error("Selecciona el tipo de producto");
       return false;
     }
-    const cantidad = parseInt(formData.cantidad);
-    if (isNaN(cantidad) || cantidad < 1) {
-      toast.error("La cantidad debe ser mayor a 0");
-      return false;
-    }
     return true;
   };
 
@@ -507,21 +502,6 @@ export const InternalOrderDialog = ({
             <SelectItem value="otro">Otro</SelectItem>
           </SelectContent>
         </Select>
-      </div>
-
-      <div>
-        <Label htmlFor="cantidad">Cantidad *</Label>
-        <Input
-          id="cantidad"
-          type="number"
-          min="1"
-          value={formData.cantidad}
-          onChange={(e) => {
-            const value = e.target.value;
-            // Si el valor está vacío o es menor a 1, establecer "1"
-            updateFormData('cantidad', value === '' || parseInt(value) < 1 ? '1' : value);
-          }}
-        />
       </div>
 
       <div>
@@ -954,12 +934,7 @@ export const InternalOrderDialog = ({
             </div>
             
             <div>
-              <span className="text-muted-foreground">Cantidad</span>
-              <p className="font-medium">{formData.cantidad}</p>
-            </div>
-            
-            <div>
-              <span className="text-muted-foreground">Precio Total</span>
+              <span className="text-muted-foreground">Precio</span>
               <p className="font-medium">{formatCurrency(formData.precio_compra)} {formData.moneda}</p>
             </div>
             
