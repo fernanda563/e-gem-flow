@@ -13,7 +13,6 @@ import { OrderPrintDialog } from "@/components/orders/OrderPrintDialog";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { OrderTypeSelectionDialog } from "@/components/orders/OrderTypeSelectionDialog";
 import { InternalOrderDialog } from "@/components/orders/InternalOrderDialog";
 import { InternalOrderList } from "@/components/orders/InternalOrderList";
 import { format } from "date-fns";
@@ -84,8 +83,8 @@ const Orders = () => {
   const [isDateFromOpen, setIsDateFromOpen] = useState(false);
   const [isDateToOpen, setIsDateToOpen] = useState(false);
   const [autoSendToSign, setAutoSendToSign] = useState(false);
-  const [isOrderTypeDialogOpen, setIsOrderTypeDialogOpen] = useState(false);
   const [isInternalOrderDialogOpen, setIsInternalOrderDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("external");
   const [internalOrders, setInternalOrders] = useState<any[]>([]);
   const [filteredInternalOrders, setFilteredInternalOrders] = useState<any[]>([]);
   const [loadingInternal, setLoadingInternal] = useState(true);
@@ -273,9 +272,6 @@ const Orders = () => {
     setIsOrderDialogOpen(true);
   };
 
-  const handleNewOrder = () => {
-    setIsOrderTypeDialogOpen(true);
-  };
 
   const handleOpenClientDialog = () => {
     setIsOrderDialogOpen(false);
@@ -311,19 +307,11 @@ const Orders = () => {
               Gestión completa de pedidos y producción
             </p>
           </div>
-          <Button
-            onClick={handleNewOrder}
-            className="bg-accent hover:bg-accent/90 text-accent-foreground"
-            size="lg"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Nueva Orden
-          </Button>
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="external" className="w-full">
-          <TabsList className="mb-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="mb-6 grid w-full grid-cols-2">
             <TabsTrigger value="external" className="flex items-center gap-2">
               <ShoppingBag className="h-4 w-4" />
               Órdenes de Clientes
@@ -333,6 +321,24 @@ const Orders = () => {
               Compras a Proveedores
             </TabsTrigger>
           </TabsList>
+
+          {/* Botón "Nueva Orden" debajo de las pestañas */}
+          <div className="mb-6">
+            <Button
+              onClick={() => {
+                if (activeTab === "external") {
+                  setIsOrderDialogOpen(true);
+                } else {
+                  setIsInternalOrderDialogOpen(true);
+                }
+              }}
+              className="bg-accent hover:bg-accent/90 text-accent-foreground w-full"
+              size="lg"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              {activeTab === "external" ? "Nueva Orden de Cliente" : "Nueva Compra a Proveedor"}
+            </Button>
+          </div>
 
           <TabsContent value="external">
         {/* Stats */}
@@ -626,14 +632,6 @@ const Orders = () => {
           </TabsContent>
         </Tabs>
       </main>
-
-      {/* Order Type Selection Dialog */}
-      <OrderTypeSelectionDialog
-        open={isOrderTypeDialogOpen}
-        onOpenChange={setIsOrderTypeDialogOpen}
-        onSelectExternal={() => setIsOrderDialogOpen(true)}
-        onSelectInternal={() => setIsInternalOrderDialogOpen(true)}
-      />
 
       {/* Order Dialog */}
       <OrderDialog
