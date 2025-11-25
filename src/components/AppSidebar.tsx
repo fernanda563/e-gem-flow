@@ -16,6 +16,10 @@ import {
   Calendar,
   Cog,
   Users2,
+  ClipboardList,
+  CheckCircle,
+  PackageCheck,
+  Truck,
 } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
 import {
@@ -37,66 +41,51 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useSystemSettings } from "@/hooks/useSystemSettings";
 
-const menuItems = [
+const menuSections = [
   {
-    title: "Dashboard",
-    url: "/dashboard",
-    icon: LayoutDashboard,
-    adminOnly: false,
+    label: "Navegación Principal",
+    items: [
+      { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, adminOnly: false },
+      { title: "Gestión de Clientes", url: "/crm", icon: Users, adminOnly: false },
+      { title: "Proyectos", url: "/projects", icon: Gem, adminOnly: false },
+      { title: "Órdenes de Compra", url: "/orders", icon: ShoppingCart, adminOnly: false },
+      { title: "Órdenes de Trabajo", url: "/work-orders", icon: ClipboardList, adminOnly: false },
+      { title: "Producción", url: "/production", icon: Box, adminOnly: false },
+    ],
   },
   {
-    title: "Gestión de Clientes",
-    url: "/crm",
-    icon: Users,
-    adminOnly: false,
+    label: "Flujo de Trabajo",
+    items: [
+      { title: "Aprobaciones", url: "/approvals", icon: CheckCircle, adminOnly: false },
+      { title: "Preparaciones", url: "/preparations", icon: PackageCheck, adminOnly: false },
+      { title: "Entregas", url: "/deliveries", icon: Truck, adminOnly: false },
+    ],
   },
   {
-    title: "Proyectos",
-    url: "/projects",
-    icon: Gem,
-    adminOnly: false,
+    label: "Reportes",
+    items: [
+      { title: "Estadísticas de Producción", url: "/production/dashboard", icon: BarChart3, adminOnly: false },
+    ],
   },
   {
-    title: "Órdenes de Compra",
-    url: "/orders",
-    icon: ShoppingCart,
-    adminOnly: false,
+    label: "Herramientas",
+    items: [
+      { title: "Colección STL/EDIT", url: "/stl-collection", icon: Box, adminOnly: true },
+      { title: "Log de Auditoría", url: "/audit-log", icon: FileText, adminOnly: true },
+    ],
   },
   {
-    title: "Producción",
-    url: "/production",
-    icon: Box,
-    adminOnly: false,
-  },
-  {
-    title: "Estadísticas de Producción",
-    url: "/production/dashboard",
-    icon: BarChart3,
-    adminOnly: false,
-  },
-  {
-    title: "Gestión de Usuarios",
-    url: "/users",
-    icon: Shield,
-    adminOnly: true,
-  },
-  {
-    title: "Colección STL/EDIT",
-    url: "/stl-collection",
-    icon: Box,
-    adminOnly: true,
-  },
-  {
-    title: "Log de Auditoría",
-    url: "/audit-log",
-    icon: FileText,
-    adminOnly: true,
+    label: "Administración",
+    items: [
+      { title: "Gestión de Usuarios", url: "/users", icon: Shield, adminOnly: true },
+    ],
   },
 ];
 
@@ -124,10 +113,6 @@ export function AppSidebar() {
   const logoSrc = currentTheme === 'dark' ? darkLogo : lightLogo;
 
   const isActive = (path: string) => currentPath === path;
-  
-  const visibleMenuItems = menuItems.filter(
-    (item) => !item.adminOnly || isAdmin()
-  );
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -156,30 +141,46 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Navegación</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {visibleMenuItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isActive(item.url)}
-                    tooltip={collapsed ? item.title : undefined}
-                  >
-                    <NavLink
-                      to={item.url}
-                      className="flex items-center gap-3"
-                    >
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {menuSections.map((section, sectionIndex) => {
+          const visibleItems = section.items.filter(
+            (item) => !item.adminOnly || isAdmin()
+          );
+          
+          if (visibleItems.length === 0) return null;
+          
+          return (
+            <div key={section.label}>
+              <SidebarGroup>
+                <SidebarGroupLabel>{section.label}</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {visibleItems.map((item) => (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={isActive(item.url)}
+                          tooltip={collapsed ? item.title : undefined}
+                        >
+                          <NavLink
+                            to={item.url}
+                            className="flex items-center gap-3"
+                          >
+                            <item.icon className="h-4 w-4" />
+                            <span>{item.title}</span>
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+              
+              {sectionIndex < menuSections.length - 1 && (
+                <Separator className="my-2" />
+              )}
+            </div>
+          );
+        })}
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border">
