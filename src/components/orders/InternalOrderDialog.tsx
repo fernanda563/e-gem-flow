@@ -36,6 +36,7 @@ export const InternalOrderDialog = ({
   const [loading, setLoading] = useState(false);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loadingSuppliers, setLoadingSuppliers] = useState(true);
+  const isEditMode = !!order;
   const [formData, setFormData] = useState<InternalOrderFormData>({
     supplier_id: "",
     proveedor_nombre: "",
@@ -73,18 +74,61 @@ export const InternalOrderDialog = ({
     csv_data: [],
   });
 
+  // Cargar datos de la orden en modo edición
+  useEffect(() => {
+    if (open && order) {
+      setFormData({
+        supplier_id: order.supplier_id || "",
+        proveedor_nombre: order.proveedor_nombre || "",
+        proveedor_contacto: order.proveedor_contacto || "",
+        numero_factura: order.numero_factura || "",
+        fecha_compra: order.fecha_compra ? new Date(order.fecha_compra) : undefined,
+        fecha_entrega_esperada: order.fecha_entrega_esperada ? new Date(order.fecha_entrega_esperada) : undefined,
+        tipo_producto: order.tipo_producto || "",
+        cantidad: order.cantidad?.toString() || "1",
+        descripcion: order.descripcion || "",
+        quilataje: order.quilataje?.toString() || "",
+        color: order.color || "",
+        claridad: order.claridad || "",
+        corte: order.corte || "",
+        forma: order.forma || "",
+        numero_reporte: order.numero_reporte || "",
+        certificado: order.certificado || "",
+        tipo_gema: "",
+        gema_quilataje: "",
+        gema_color: "",
+        gema_claridad: "",
+        gema_forma: "",
+        gema_certificado: "",
+        material: "",
+        talla: "",
+        dimensiones: "",
+        especificaciones: "",
+        factura_pdf: null, // No cargamos archivos en edición
+        imagenes_producto: [],
+        precio_compra: order.precio_compra?.toString() || "",
+        moneda: order.moneda || "MXN",
+        estatus_pago: order.estatus_pago || "pendiente",
+        notas_adicionales: order.notas_adicionales || "",
+        carga_multiple: false,
+        csv_data: [],
+      });
+    }
+  }, [open, order]);
+
   const updateFormData = (field: keyof InternalOrderFormData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   // Handle product type change with bulk mode reset
-  const handleProductTypeChange = (value: ProductType) => {
+  const handleProductTypeChange = (value: string) => {
+    const productType = value as ProductType;
     setFormData(prev => ({
       ...prev,
-      tipo_producto: value,
-      // Reset bulk mode if changing away from diamante
-      carga_multiple: value === 'diamante' ? prev.carga_multiple : false,
-      csv_data: value === 'diamante' ? prev.csv_data : [],
+      tipo_producto: productType,
+      // Reset bulk mode if changing away from diamante or in edit mode
+      carga_multiple: (productType === 'diamante' && !isEditMode) ? prev.carga_multiple : false,
+      csv_data: (productType === 'diamante' && !isEditMode) ? prev.csv_data : [],
     }));
   };
 
@@ -159,6 +203,11 @@ export const InternalOrderDialog = ({
       return false;
     }
     
+    // En modo edición, no se permite carga múltiple
+    if (isEditMode) {
+      return true;
+    }
+    
     // If diamonds in bulk mode, CSV must be loaded
     if (formData.tipo_producto === 'diamante' && formData.carga_multiple) {
       if (formData.csv_data.length === 0) {
@@ -197,6 +246,11 @@ export const InternalOrderDialog = ({
   };
 
   const validateStep4 = () => {
+    // En modo edición, el PDF no es obligatorio
+    if (isEditMode) {
+      return true;
+    }
+    
     if (!formData.factura_pdf) {
       toast.error("Debes subir la factura en PDF");
       return false;
@@ -324,7 +378,45 @@ export const InternalOrderDialog = ({
     setLoading(true);
 
     try {
-      if (formData.carga_multiple && formData.csv_data.length > 0) {
+      if (isEditMode && order) {
+        // Modo edición - actualizar orden existente
+        const updateData: any = {
+          supplier_id: formData.supplier_id,
+          proveedor_nombre: formData.proveedor_nombre,
+          proveedor_contacto: formData.proveedor_contacto || null,
+          numero_factura: formData.numero_factura,
+          fecha_compra: format(formData.fecha_compra!, 'yyyy-MM-dd'),
+          fecha_entrega_esperada: formData.fecha_entrega_esperada ? format(formData.fecha_entrega_esperada, 'yyyy-MM-dd') : null,
+          precio_compra: parseFloat(formData.precio_compra),
+          moneda: formData.moneda,
+          estatus_pago: formData.estatus_pago,
+          notas_adicionales: formData.notas_adicionales || null,
+        };
+
+        // Campos específicos de diamante
+        if (formData.tipo_producto === 'diamante') {
+          updateData.quilataje = parseFloat(formData.quilataje);
+          updateData.color = formData.color;
+          updateData.claridad = formData.claridad;
+          updateData.corte = formData.corte;
+          updateData.forma = formData.forma;
+          updateData.numero_reporte = formData.numero_reporte;
+          updateData.certificado = formData.certificado;
+        }
+
+        // Actualizar en la base de datos
+        const { error } = await supabase
+          .from('purchase_orders_internal')
+          .update(updateData)
+          .eq('id', order.id);
+
+        if (error) throw error;
+
+        toast.success("Orden actualizada exitosamente");
+        onSuccess();
+        onOpenChange(false);
+        setCurrentStep(1);
+      } else if (formData.carga_multiple && formData.csv_data.length > 0) {
         // Multi-order creation from CSV
         const tempId = crypto.randomUUID();
         const batchId = crypto.randomUUID(); // Unique batch ID for this CSV import
@@ -709,7 +801,11 @@ export const InternalOrderDialog = ({
       {/* Product Type Selection - Always shown first */}
       <div>
         <Label htmlFor="tipo_producto">Tipo de Producto *</Label>
-        <Select value={formData.tipo_producto} onValueChange={handleProductTypeChange}>
+        <Select 
+          value={formData.tipo_producto} 
+          onValueChange={handleProductTypeChange}
+          disabled={isEditMode}
+        >
           <SelectTrigger>
             <SelectValue placeholder="Seleccionar tipo" />
           </SelectTrigger>
@@ -727,8 +823,8 @@ export const InternalOrderDialog = ({
         </Select>
       </div>
 
-      {/* Mode Selection Cards - Only for diamonds */}
-      {formData.tipo_producto === 'diamante' && (
+      {/* Mode Selection Cards - Only for diamonds and not in edit mode */}
+      {formData.tipo_producto === 'diamante' && !isEditMode && (
         <div className="animate-fade-in">
           <Label className="mb-3 block">Modo de Carga *</Label>
           <div className="grid grid-cols-2 gap-4">
@@ -1121,99 +1217,110 @@ export const InternalOrderDialog = ({
 
   const renderStep4 = () => (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <Label>Subir Factura (Obligatorio) *</Label>
-        <div className="border-2 border-dashed rounded-lg p-6 text-center">
-          <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <div className="space-y-2">
-            <Input
-              type="file"
-              accept=".pdf"
-              onChange={(e) => handleFileChange(e, 'pdf')}
-              className="hidden"
-              id="pdf-upload"
-            />
-            <Label htmlFor="pdf-upload" className="cursor-pointer">
-              <div className="text-sm">
-                Arrastra tu PDF aquí o{" "}
-                <span className="text-primary hover:underline">haz clic para seleccionar</span>
-              </div>
-              <div className="text-xs text-muted-foreground mt-1">
-                Máximo 10MB
-              </div>
-            </Label>
-          </div>
-          {formData.factura_pdf && (
-            <div className="mt-4 flex items-center justify-center gap-2 text-sm">
-              <FileText className="h-4 w-4" />
-              <span>{formData.factura_pdf.name}</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => updateFormData('factura_pdf', null)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {!formData.carga_multiple && (
-        <div className="space-y-2">
-          <Label>Imágenes del Producto (Opcional)</Label>
-          <div className="border-2 border-dashed rounded-lg p-6 text-center">
-            <ImageIcon className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <div className="space-y-2">
-              <Input
-                type="file"
-                accept=".jpg,.jpeg,.png,.webp"
-                multiple
-                onChange={(e) => handleFileChange(e, 'images')}
-                className="hidden"
-                id="images-upload"
-              />
-              <Label htmlFor="images-upload" className="cursor-pointer">
-                <div className="text-sm">
-                  Arrastra tus imágenes aquí o{" "}
-                  <span className="text-primary hover:underline">haz clic para seleccionar</span>
-                </div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  JPG, PNG o WEBP. Máximo 5 imágenes de 10MB cada una
-                </div>
-              </Label>
-            </div>
-            {formData.imagenes_producto.length > 0 && (
-              <div className="mt-4 grid grid-cols-3 gap-2">
-                {formData.imagenes_producto.map((img, idx) => (
-                  <div key={idx} className="relative group">
-                    <img
-                      src={URL.createObjectURL(img)}
-                      alt={`Preview ${idx + 1}`}
-                      className="w-full h-24 object-cover rounded"
-                    />
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => removeImage(idx)}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {formData.carga_multiple && (
-        <div className="p-4 bg-muted/50 rounded-lg">
-          <p className="text-sm text-muted-foreground">
-            Las imágenes de los productos se obtendrán automáticamente desde el CSV
+      {isEditMode ? (
+        <div className="p-4 bg-muted/50 rounded-lg border border-border">
+          <p className="text-sm text-muted-foreground text-center">
+            En modo edición, los archivos no pueden ser modificados. 
+            Los archivos originales se mantienen sin cambios.
           </p>
         </div>
+      ) : (
+        <>
+          <div className="space-y-2">
+            <Label>Subir Factura (Obligatorio) *</Label>
+            <div className="border-2 border-dashed rounded-lg p-6 text-center">
+              <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+              <div className="space-y-2">
+                <Input
+                  type="file"
+                  accept=".pdf"
+                  onChange={(e) => handleFileChange(e, 'pdf')}
+                  className="hidden"
+                  id="pdf-upload"
+                />
+                <Label htmlFor="pdf-upload" className="cursor-pointer">
+                  <div className="text-sm">
+                    Arrastra tu PDF aquí o{" "}
+                    <span className="text-primary hover:underline">haz clic para seleccionar</span>
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    Máximo 10MB
+                  </div>
+                </Label>
+              </div>
+              {formData.factura_pdf && (
+                <div className="mt-4 flex items-center justify-center gap-2 text-sm">
+                  <FileText className="h-4 w-4" />
+                  <span>{formData.factura_pdf.name}</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => updateFormData('factura_pdf', null)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {!formData.carga_multiple && (
+            <div className="space-y-2">
+              <Label>Imágenes del Producto (Opcional)</Label>
+              <div className="border-2 border-dashed rounded-lg p-6 text-center">
+                <ImageIcon className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                <div className="space-y-2">
+                  <Input
+                    type="file"
+                    accept=".jpg,.jpeg,.png,.webp"
+                    multiple
+                    onChange={(e) => handleFileChange(e, 'images')}
+                    className="hidden"
+                    id="images-upload"
+                  />
+                  <Label htmlFor="images-upload" className="cursor-pointer">
+                    <div className="text-sm">
+                      Arrastra tus imágenes aquí o{" "}
+                      <span className="text-primary hover:underline">haz clic para seleccionar</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      JPG, PNG o WEBP. Máximo 5 imágenes de 10MB cada una
+                    </div>
+                  </Label>
+                </div>
+                {formData.imagenes_producto.length > 0 && (
+                  <div className="mt-4 grid grid-cols-3 gap-2">
+                    {formData.imagenes_producto.map((img, idx) => (
+                      <div key={idx} className="relative group">
+                        <img
+                          src={URL.createObjectURL(img)}
+                          alt={`Preview ${idx + 1}`}
+                          className="w-full h-24 object-cover rounded"
+                        />
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => removeImage(idx)}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {formData.carga_multiple && (
+            <div className="p-4 bg-muted/50 rounded-lg">
+              <p className="text-sm text-muted-foreground">
+                Las imágenes de los productos se obtendrán automáticamente desde el CSV
+              </p>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
@@ -1373,9 +1480,14 @@ export const InternalOrderDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Nueva Compra a Proveedor</DialogTitle>
+          <DialogTitle>
+            {isEditMode ? "Editar Compra a Proveedor" : "Nueva Compra a Proveedor"}
+          </DialogTitle>
           <DialogDescription>
-            Completa la información para registrar la compra
+            {isEditMode 
+              ? "Modifica la información de la compra" 
+              : "Completa la información para registrar la compra"
+            }
           </DialogDescription>
         </DialogHeader>
 
@@ -1443,10 +1555,10 @@ export const InternalOrderDialog = ({
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Guardando...
+                {isEditMode ? "Actualizando..." : "Guardando..."}
               </>
             ) : currentStep === 5 ? (
-              "Guardar Orden"
+              isEditMode ? "Actualizar Orden" : "Guardar Orden"
             ) : (
               <>
                 Siguiente

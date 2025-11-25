@@ -4,6 +4,8 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useState } from "react";
+import { InternalOrderDialog } from "./InternalOrderDialog";
 
 interface InternalOrderListProps {
   orders: InternalOrder[];
@@ -13,9 +15,18 @@ interface InternalOrderListProps {
 
 export const InternalOrderList = ({ orders, loading, onRefresh }: InternalOrderListProps) => {
   const { isAdmin } = useUserRole();
+  const [editingOrder, setEditingOrder] = useState<InternalOrder | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-  const handleDownloadInvoice = (url: string) => {
-    window.open(url, '_blank');
+  const handleEdit = (order: InternalOrder) => {
+    // No permitir editar órdenes de lotes CSV
+    if (order.batch_id && !order.is_batch_primary) {
+      toast.error("No se puede editar una orden individual de un lote CSV");
+      return;
+    }
+    
+    setEditingOrder(order);
+    setIsEditDialogOpen(true);
   };
 
   const handleDelete = async (orderId: string) => {
@@ -54,17 +65,29 @@ export const InternalOrderList = ({ orders, loading, onRefresh }: InternalOrderL
   }
 
   return (
-    <div className="space-y-4">
-      {orders.map((order) => (
-        <InternalOrderCard
-          key={order.id}
-          order={order}
-          onEdit={() => {/* TODO: Implement edit */}}
-          onDelete={() => handleDelete(order.id)}
-          showActions={true}
-          isAdmin={isAdmin()}
-        />
-      ))}
-    </div>
+    <>
+      <div className="space-y-4">
+        {orders.map((order) => (
+          <InternalOrderCard
+            key={order.id}
+            order={order}
+            onEdit={() => handleEdit(order)}
+            onDelete={() => handleDelete(order.id)}
+            showActions={true}
+            isAdmin={isAdmin()}
+          />
+        ))}
+      </div>
+
+      <InternalOrderDialog
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        onSuccess={() => {
+          onRefresh?.();
+          setEditingOrder(null);
+        }}
+        order={editingOrder}
+      />
+    </>
   );
 };
