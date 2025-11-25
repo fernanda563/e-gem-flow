@@ -150,7 +150,7 @@ export const InternalOrderDialog = ({
 
   const validateStep3 = () => {
     if (formData.tipo_producto === 'diamante') {
-      if (!formData.quilataje || !formData.color || !formData.claridad || 
+      if (!formData.quilataje.trim() || !formData.color || !formData.claridad || 
           !formData.corte || !formData.forma || !formData.numero_reporte || !formData.certificado) {
         toast.error("Para diamantes, todos los campos de especificación son obligatorios");
         return false;
@@ -553,7 +553,7 @@ export const InternalOrderDialog = ({
                 max="999.99"
                 value={formData.quilataje}
                 onChange={(e) => updateFormData('quilataje', e.target.value)}
-                placeholder="1.50"
+                placeholder="Ej: 1.25"
               />
             </div>
 
@@ -674,7 +674,7 @@ export const InternalOrderDialog = ({
               step="0.01"
               value={formData.gema_quilataje}
               onChange={(e) => updateFormData('gema_quilataje', e.target.value)}
-              placeholder="1.50"
+              placeholder="Ej: 2.00"
             />
           </div>
 
