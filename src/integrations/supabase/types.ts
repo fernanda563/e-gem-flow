@@ -487,6 +487,96 @@ export type Database = {
           },
         ]
       }
+      purchase_orders_internal: {
+        Row: {
+          cantidad: number
+          certificado: string | null
+          claridad: string | null
+          color: string | null
+          corte: string | null
+          created_at: string
+          created_by: string | null
+          descripcion: string | null
+          estatus: Database["public"]["Enums"]["internal_order_status"]
+          estatus_pago: Database["public"]["Enums"]["internal_payment_status"]
+          factura_pdf_url: string
+          fecha_compra: string
+          fecha_entrega_esperada: string | null
+          forma: string | null
+          id: string
+          imagenes_producto: Json | null
+          moneda: string
+          notas_adicionales: string | null
+          numero_factura: string
+          numero_reporte: string | null
+          precio_compra: number
+          proveedor_contacto: string | null
+          proveedor_nombre: string
+          quilataje: number | null
+          tipo_orden: Database["public"]["Enums"]["order_type"]
+          tipo_producto: Database["public"]["Enums"]["product_type"]
+          updated_at: string
+        }
+        Insert: {
+          cantidad?: number
+          certificado?: string | null
+          claridad?: string | null
+          color?: string | null
+          corte?: string | null
+          created_at?: string
+          created_by?: string | null
+          descripcion?: string | null
+          estatus?: Database["public"]["Enums"]["internal_order_status"]
+          estatus_pago?: Database["public"]["Enums"]["internal_payment_status"]
+          factura_pdf_url: string
+          fecha_compra: string
+          fecha_entrega_esperada?: string | null
+          forma?: string | null
+          id?: string
+          imagenes_producto?: Json | null
+          moneda?: string
+          notas_adicionales?: string | null
+          numero_factura: string
+          numero_reporte?: string | null
+          precio_compra: number
+          proveedor_contacto?: string | null
+          proveedor_nombre: string
+          quilataje?: number | null
+          tipo_orden?: Database["public"]["Enums"]["order_type"]
+          tipo_producto: Database["public"]["Enums"]["product_type"]
+          updated_at?: string
+        }
+        Update: {
+          cantidad?: number
+          certificado?: string | null
+          claridad?: string | null
+          color?: string | null
+          corte?: string | null
+          created_at?: string
+          created_by?: string | null
+          descripcion?: string | null
+          estatus?: Database["public"]["Enums"]["internal_order_status"]
+          estatus_pago?: Database["public"]["Enums"]["internal_payment_status"]
+          factura_pdf_url?: string
+          fecha_compra?: string
+          fecha_entrega_esperada?: string | null
+          forma?: string | null
+          id?: string
+          imagenes_producto?: Json | null
+          moneda?: string
+          notas_adicionales?: string | null
+          numero_factura?: string
+          numero_reporte?: string | null
+          precio_compra?: number
+          proveedor_contacto?: string | null
+          proveedor_nombre?: string
+          quilataje?: number | null
+          tipo_orden?: Database["public"]["Enums"]["order_type"]
+          tipo_producto?: Database["public"]["Enums"]["product_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       reminders: {
         Row: {
           client_id: string
@@ -695,6 +785,23 @@ export type Database = {
         | "joyero"
         | "gerente_tienda"
         | "contador"
+      internal_order_status:
+        | "pendiente"
+        | "en_transito"
+        | "recibido"
+        | "cancelado"
+      internal_payment_status: "pendiente" | "anticipo" | "pagado"
+      order_type: "externa" | "interna"
+      product_type:
+        | "diamante"
+        | "gema"
+        | "anillo"
+        | "collar"
+        | "arete"
+        | "dije"
+        | "cadena"
+        | "componente"
+        | "otro"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -828,6 +935,25 @@ export const Constants = {
         "joyero",
         "gerente_tienda",
         "contador",
+      ],
+      internal_order_status: [
+        "pendiente",
+        "en_transito",
+        "recibido",
+        "cancelado",
+      ],
+      internal_payment_status: ["pendiente", "anticipo", "pagado"],
+      order_type: ["externa", "interna"],
+      product_type: [
+        "diamante",
+        "gema",
+        "anillo",
+        "collar",
+        "arete",
+        "dije",
+        "cadena",
+        "componente",
+        "otro",
       ],
     },
   },

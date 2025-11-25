@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Search, Plus, DollarSign, Package, TrendingUp, Calendar as CalendarIcon, X } from "lucide-react";
+import { Search, Plus, DollarSign, Package, TrendingUp, Calendar as CalendarIcon, X, ShoppingBag } from "lucide-react";
 import OrderDialog from "@/components/orders/OrderDialog";
 import OrderList from "@/components/orders/OrderList";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,10 @@ import ClientDialog from "@/components/crm/ClientDialog";
 import { OrderPrintDialog } from "@/components/orders/OrderPrintDialog";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { OrderTypeSelectionDialog } from "@/components/orders/OrderTypeSelectionDialog";
+import { InternalOrderDialog } from "@/components/orders/InternalOrderDialog";
+import { InternalOrderList } from "@/components/orders/InternalOrderList";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -80,6 +84,8 @@ const Orders = () => {
   const [isDateFromOpen, setIsDateFromOpen] = useState(false);
   const [isDateToOpen, setIsDateToOpen] = useState(false);
   const [autoSendToSign, setAutoSendToSign] = useState(false);
+  const [isOrderTypeDialogOpen, setIsOrderTypeDialogOpen] = useState(false);
+  const [isInternalOrderDialogOpen, setIsInternalOrderDialogOpen] = useState(false);
 
   // Stats
   const [stats, setStats] = useState({
@@ -89,8 +95,16 @@ const Orders = () => {
     inProduction: 0,
   });
 
+  const [internalStats, setInternalStats] = useState({
+    totalCompras: 0,
+    gastoTotal: 0,
+    enTransito: 0,
+    recibidas: 0,
+  });
+
   useEffect(() => {
     fetchOrders();
+    fetchInternalOrdersStats();
   }, []);
 
   useEffect(() => {
@@ -186,9 +200,37 @@ const Orders = () => {
     });
   };
 
+  const fetchInternalOrdersStats = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('purchase_orders_internal')
+        .select('*');
+
+      if (error) throw error;
+
+      const total = data?.length || 0;
+      const gasto = data?.reduce((sum, order) => sum + Number(order.precio_compra), 0) || 0;
+      const enTransito = data?.filter(o => o.estatus === 'en_transito').length || 0;
+      const recibidas = data?.filter(o => o.estatus === 'recibido').length || 0;
+
+      setInternalStats({
+        totalCompras: total,
+        gastoTotal: gasto,
+        enTransito,
+        recibidas,
+      });
+    } catch (error) {
+      console.error('Error fetching internal stats:', error);
+    }
+  };
+
   const handleOrderAction = (order?: Order) => {
     setSelectedOrder(order || null);
     setIsOrderDialogOpen(true);
+  };
+
+  const handleNewOrder = () => {
+    setIsOrderTypeDialogOpen(true);
   };
 
   const handleOpenClientDialog = () => {
@@ -225,6 +267,20 @@ const Orders = () => {
           </p>
         </div>
 
+        {/* Tabs */}
+        <Tabs defaultValue="external" className="w-full">
+          <TabsList className="mb-6">
+            <TabsTrigger value="external" className="flex items-center gap-2">
+              <ShoppingBag className="h-4 w-4" />
+              Órdenes de Clientes
+            </TabsTrigger>
+            <TabsTrigger value="internal" className="flex items-center gap-2">
+              <Package className="h-4 w-4" />
+              Compras a Proveedores
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="external">
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card className="border-border">
@@ -293,7 +349,7 @@ const Orders = () => {
                   />
                 </div>
                 <Button
-                  onClick={() => handleOrderAction()}
+                  onClick={handleNewOrder}
                   className="bg-accent hover:bg-accent/90 text-accent-foreground"
                 >
                   <Plus className="h-4 w-4 mr-2" />
@@ -401,7 +457,75 @@ const Orders = () => {
           onOpenPrint={handleOpenPrint}
           onSendToSign={handleSendToSign}
         />
+          </TabsContent>
+
+          <TabsContent value="internal">
+            {/* Internal Orders Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <Card className="border-border">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <Package className="h-4 w-4" />
+                    Total Compras
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-foreground">{internalStats.totalCompras}</div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-border">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <DollarSign className="h-4 w-4" />
+                    Gasto Total
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-foreground">
+                    ${internalStats.gastoTotal.toLocaleString("es-MX")}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-border">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4" />
+                    En Tránsito
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-foreground">{internalStats.enTransito}</div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-border">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <Package className="h-4 w-4" />
+                    Recibidas
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-accent">{internalStats.recibidas}</div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Internal Orders List */}
+            <InternalOrderList onRefresh={fetchInternalOrdersStats} />
+          </TabsContent>
+        </Tabs>
       </main>
+
+      {/* Order Type Selection Dialog */}
+      <OrderTypeSelectionDialog
+        open={isOrderTypeDialogOpen}
+        onOpenChange={setIsOrderTypeDialogOpen}
+        onSelectExternal={() => setIsOrderDialogOpen(true)}
+        onSelectInternal={() => setIsInternalOrderDialogOpen(true)}
+      />
 
       {/* Order Dialog */}
       <OrderDialog
@@ -417,6 +541,16 @@ const Orders = () => {
         open={isClientDialogOpen}
         onOpenChange={setIsClientDialogOpen}
         onSuccess={handleClientSuccess}
+      />
+
+      {/* Internal Order Dialog */}
+      <InternalOrderDialog
+        open={isInternalOrderDialogOpen}
+        onOpenChange={setIsInternalOrderDialogOpen}
+        onSuccess={() => {
+          fetchInternalOrdersStats();
+          toast.success("Orden interna creada exitosamente");
+        }}
       />
 
       {/* Order Print Dialog */}
