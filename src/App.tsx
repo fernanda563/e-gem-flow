@@ -9,6 +9,10 @@ import CRM from "./pages/CRM";
 import ClientDetail from "./pages/ClientDetail";
 import Projects from "./pages/Projects";
 import Orders from "./pages/Orders";
+import WorkOrders from "./pages/WorkOrders";
+import Approvals from "./pages/Approvals";
+import Preparations from "./pages/Preparations";
+import Deliveries from "./pages/Deliveries";
 import Production from "./pages/Production";
 import ProductionDashboard from "./pages/ProductionDashboard";
 import Users from "./pages/Users";
@@ -32,10 +36,14 @@ const App = () => (
       <Route element={<DashboardLayout />}>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/crm" element={<CRM />} />
-        <Route path="/crm/:clientId" element={<ClientDetail />} />
-        <Route path="/projects" element={<Projects />} />
-        <Route path="/orders" element={<Orders />} />
-        <Route path="/production" element={<Production />} />
+          <Route path="/crm/:clientId" element={<ClientDetail />} />
+          <Route path="/projects" element={<Projects />} />
+          <Route path="/orders" element={<Orders />} />
+          <Route path="/work-orders" element={<WorkOrders />} />
+          <Route path="/approvals" element={<Approvals />} />
+          <Route path="/preparations" element={<Preparations />} />
+          <Route path="/deliveries" element={<Deliveries />} />
+          <Route path="/production" element={<Production />} />
         <Route path="/production/dashboard" element={<ProductionDashboard />} />
         <Route path="/users" element={<Users />} />
         <Route path="/stl-collection" element={<STLCollection />} />
