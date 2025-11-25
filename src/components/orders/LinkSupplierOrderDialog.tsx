@@ -20,6 +20,7 @@ interface SupplierOrder {
   forma: string | null;
   color: string | null;
   claridad: string | null;
+  corte: string | null;
   fecha_compra: string;
   supplier?: {
     nombre_empresa: string;
@@ -74,6 +75,7 @@ export const LinkSupplierOrderDialog = ({
           forma,
           color,
           claridad,
+          corte,
           fecha_compra,
           supplier:suppliers(nombre_empresa)
         `)
@@ -126,6 +128,18 @@ export const LinkSupplierOrderDialog = ({
     return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
   };
 
+  const translateCut = (cut: string | null) => {
+    if (!cut) return '';
+    const cutTranslations: { [key: string]: string } = {
+      'excellent': 'Excelente',
+      'very good': 'Muy bueno',
+      'good': 'Bueno',
+      'fair': 'Regular',
+      'poor': 'Pobre',
+    };
+    return cutTranslations[cut.toLowerCase()] || capitalizeFirst(cut);
+  };
+
   const getOrderLabel = (order: SupplierOrder) => {
     const supplierName = order.supplier?.nombre_empresa || order.proveedor_nombre;
     let label = `${supplierName} #${order.numero_factura}`;
@@ -136,6 +150,7 @@ export const LinkSupplierOrderDialog = ({
         order.forma ? capitalizeFirst(order.forma) : null,
         order.color ? order.color.toUpperCase() : null,
         order.claridad ? order.claridad.toUpperCase() : null,
+        order.corte ? translateCut(order.corte) : null,
       ].filter(Boolean).join(" ");
       
       if (details) {
