@@ -228,7 +228,21 @@ const Orders = () => {
 
       if (error) throw error;
 
-      setInternalOrders(data || []);
+      // Calculate batch counts
+      const batchCounts = new Map<string, number>();
+      (data || []).forEach(order => {
+        if (order.batch_id) {
+          batchCounts.set(order.batch_id, (batchCounts.get(order.batch_id) || 0) + 1);
+        }
+      });
+
+      // Add batch_count to each order
+      const ordersWithBatchCount = (data || []).map(order => ({
+        ...order,
+        batch_count: order.batch_id ? batchCounts.get(order.batch_id) : undefined
+      }));
+
+      setInternalOrders(ordersWithBatchCount);
       
       // Calculate stats
       const stats = {
