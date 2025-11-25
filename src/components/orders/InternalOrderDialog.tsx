@@ -516,7 +516,11 @@ export const InternalOrderDialog = ({
           type="number"
           min="1"
           value={formData.cantidad}
-          onChange={(e) => updateFormData('cantidad', e.target.value)}
+          onChange={(e) => {
+            const value = e.target.value;
+            // Si el valor está vacío o es menor a 1, establecer "1"
+            updateFormData('cantidad', value === '' || parseInt(value) < 1 ? '1' : value);
+          }}
         />
       </div>
 
