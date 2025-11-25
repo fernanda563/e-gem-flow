@@ -1,10 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { InternalOrder, Supplier } from "@/types/internal-orders";
 import { Package, FileText, Image as ImageIcon, Edit, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { useState } from "react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 interface InternalOrderCardProps {
   order: InternalOrder;
@@ -21,43 +22,7 @@ export const InternalOrderCard = ({
   showActions = true,
   isAdmin = false,
 }: InternalOrderCardProps) => {
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pendiente':
-        return 'bg-yellow-500';
-      case 'en_transito':
-        return 'bg-blue-500';
-      case 'recibido':
-        return 'bg-green-500';
-      case 'cancelado':
-        return 'bg-red-500';
-      default:
-        return 'bg-gray-500';
-    }
-  };
-
-  const getPaymentStatusColor = (status: string) => {
-    switch (status) {
-      case 'pendiente':
-        return 'bg-yellow-500';
-      case 'anticipo':
-        return 'bg-orange-500';
-      case 'pagado':
-        return 'bg-green-500';
-      default:
-        return 'bg-gray-500';
-    }
-  };
-
-  const formatStatus = (status: string) => {
-    const statuses: Record<string, string> = {
-      pendiente: 'Pendiente',
-      en_transito: 'En Tránsito',
-      recibido: 'Recibido',
-      cancelado: 'Cancelado',
-    };
-    return statuses[status] || status;
-  };
+  const [showGallery, setShowGallery] = useState(false);
 
   const formatProductType = (type: string) => {
     const types: Record<string, string> = {
@@ -83,14 +48,6 @@ export const InternalOrderCard = ({
               <Package className="h-5 w-5" />
               Orden Interna #{order.id.slice(0, 8)}
             </CardTitle>
-            <div className="flex gap-2">
-              <Badge className={getStatusColor(order.estatus)}>
-                {formatStatus(order.estatus)}
-              </Badge>
-              <Badge className={getPaymentStatusColor(order.estatus_pago)} variant="outline">
-                {order.estatus_pago}
-              </Badge>
-            </div>
           </div>
         </div>
       </CardHeader>
@@ -181,7 +138,7 @@ export const InternalOrderCard = ({
               Descargar Factura
             </Button>
             {order.imagenes_producto.length > 0 && (
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={() => setShowGallery(true)}>
                 <ImageIcon className="h-4 w-4 mr-2" />
                 Ver Galería ({order.imagenes_producto.length} imágenes)
               </Button>
@@ -213,6 +170,26 @@ export const InternalOrderCard = ({
           </div>
         )}
       </CardContent>
+
+      {/* Image Gallery Dialog */}
+      <Dialog open={showGallery} onOpenChange={setShowGallery}>
+        <DialogContent className="max-w-4xl">
+          <div className="grid grid-cols-2 gap-4">
+            {order.imagenes_producto.map((url, index) => (
+              <div key={index} className="relative aspect-square">
+                <img
+                  src={url}
+                  alt={`Producto ${index + 1}`}
+                  className="w-full h-full object-cover rounded-lg"
+                  onError={(e) => {
+                    e.currentTarget.src = '/placeholder.svg';
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
