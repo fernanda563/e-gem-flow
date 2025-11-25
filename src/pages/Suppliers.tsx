@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Plus, Building2, Globe, Loader2 } from "lucide-react";
+import { Search, Plus, Building2, Globe, Loader2, Mail, Phone } from "lucide-react";
 import { toast } from "sonner";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useNavigate } from "react-router-dom";
@@ -226,12 +226,21 @@ const Suppliers = () => {
                         <p className="font-medium text-foreground">
                           Contacto: {supplier.nombre_contacto}
                         </p>
-                        <p>📧 {supplier.email}</p>
+                        <p className="flex items-center gap-2">
+                          <Mail className="h-4 w-4" />
+                          {supplier.email}
+                        </p>
                         {supplier.telefono && (
-                          <p>📞 {supplier.telefono_codigo_pais || "+52"} {supplier.telefono}</p>
+                          <p className="flex items-center gap-2">
+                            <Phone className="h-4 w-4" />
+                            {supplier.telefono_codigo_pais || "+52"} {supplier.telefono}
+                          </p>
                         )}
                         {supplier.pais && (
-                          <p>🌍 {supplier.pais}</p>
+                          <p className="flex items-center gap-2">
+                            <Globe className="h-4 w-4" />
+                            {supplier.pais}
+                          </p>
                         )}
                       </div>
 
