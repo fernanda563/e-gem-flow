@@ -29,6 +29,10 @@ export interface InternalOrder {
   tipo_orden: OrderType;
   tipo_producto: ProductType;
   
+  // Batch tracking
+  batch_id?: string;
+  is_batch_primary?: boolean;
+  
   // Proveedor
   supplier_id?: string;
   proveedor_nombre: string;

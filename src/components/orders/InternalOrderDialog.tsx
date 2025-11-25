@@ -313,6 +313,7 @@ export const InternalOrderDialog = ({
       if (formData.carga_multiple && formData.csv_data.length > 0) {
         // Multi-order creation from CSV
         const tempId = crypto.randomUUID();
+        const batchId = crypto.randomUUID(); // Unique batch ID for this CSV import
         
         // Upload PDF once (shared by all orders)
         const facturaPdfUrl = await uploadPDFOnly(tempId);
@@ -370,6 +371,10 @@ export const InternalOrderDialog = ({
               factura_pdf_url: facturaPdfUrl,
               imagenes_producto: imageUrl ? [imageUrl] : [],
               estatus: 'pendiente' as const,
+              
+              // Batch tracking
+              batch_id: batchId,
+              is_batch_primary: i === 0, // Only first order counts toward expenses
               
               // Diamond-specific fields from CSV
               numero_stock: diamond.stock_number,

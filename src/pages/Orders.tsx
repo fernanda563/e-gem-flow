@@ -233,7 +233,9 @@ const Orders = () => {
       // Calculate stats
       const stats = {
         totalCompras: data?.length || 0,
-        gastoTotal: data?.reduce((sum, order) => sum + (order.precio_compra || 0), 0) || 0,
+        gastoTotal: data?.reduce((sum, order) => 
+          order.is_batch_primary !== false ? sum + (order.precio_compra || 0) : sum, 0
+        ) || 0,
         enTransito: data?.filter(order => order.estatus === 'en_transito').length || 0,
         recibidas: data?.filter(order => order.estatus === 'recibido').length || 0,
       };
