@@ -23,10 +23,22 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const dropboxSignApiKey = Deno.env.get('DROPBOX_SIGN_API_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Parse the webhook event
-    const body = await req.json();
+    // Dropbox Sign envía webhooks como multipart/form-data con un campo 'json'
+    const formData = await req.formData();
+    const jsonString = formData.get('json');
+    
+    if (!jsonString || typeof jsonString !== 'string') {
+      console.log('No se encontró campo json en form-data - probablemente una prueba');
+      return new Response('Hello API Event Received', {
+        status: 200,
+        headers: { 'Content-Type': 'text/plain' }
+      });
+    }
+
+    const body = JSON.parse(jsonString);
     console.log('Webhook recibido de Dropbox Sign:', JSON.stringify(body, null, 2));
 
     // If no event data, it's a test ping
@@ -48,16 +60,29 @@ Deno.serve(async (req) => {
     }
 
     const signatureRequestId = signatureRequest.signature_request_id;
-    const orderId = signatureRequest.metadata?.order_id;
 
     console.log('Evento tipo:', eventType);
     console.log('Signature Request ID:', signatureRequestId);
-    console.log('Order ID:', orderId);
 
-    if (!orderId) {
-      console.error('No se encontró order_id en metadata');
+    // Buscar la orden usando signature_request_id
+    const { data: order, error: findError } = await supabase
+      .from('orders')
+      .select('id')
+      .eq('signature_request_id', signatureRequestId)
+      .maybeSingle();
+
+    if (findError) {
+      console.error('Error buscando orden:', findError);
       return new Response('OK', { status: 200 });
     }
+
+    if (!order) {
+      console.error('No se encontró orden con signature_request_id:', signatureRequestId);
+      return new Response('OK', { status: 200 });
+    }
+
+    const orderId = order.id;
+    console.log('Orden encontrada:', orderId);
 
     // Handle different event types
     switch (eventType) {
@@ -65,22 +90,64 @@ Deno.serve(async (req) => {
       case 'signature_request_all_signed': {
         console.log('Todos los firmantes han firmado');
         
-        // Get the signed document URL
-        const filesUrl = signatureRequest.files_url;
-        
-        const { error: updateError } = await supabase
-          .from('orders')
-          .update({
-            signature_status: 'signed',
-            signed_document_url: filesUrl,
-            signature_completed_at: new Date().toISOString(),
-          })
-          .eq('id', orderId);
+        try {
+          // Descargar el PDF firmado desde Dropbox Sign
+          console.log('Descargando documento firmado...');
+          const filesResponse = await fetch(
+            `https://api.hellosign.com/v3/signature_request/files/${signatureRequestId}`,
+            {
+              headers: {
+                'Authorization': `Basic ${btoa(dropboxSignApiKey + ':')}`,
+              },
+            }
+          );
 
-        if (updateError) {
-          console.error('Error actualizando orden:', updateError);
-        } else {
-          console.log('Orden actualizada exitosamente como firmada');
+          if (!filesResponse.ok) {
+            throw new Error(`Error descargando PDF: ${filesResponse.status}`);
+          }
+
+          const pdfBlob = await filesResponse.blob();
+          const pdfArrayBuffer = await pdfBlob.arrayBuffer();
+          
+          // Subir el PDF firmado a Supabase Storage
+          const signedFileName = `signed-${signatureRequestId}.pdf`;
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('payment-receipts')
+            .upload(`signed-documents/${signedFileName}`, pdfArrayBuffer, {
+              contentType: 'application/pdf',
+              upsert: true,
+            });
+
+          if (uploadError) {
+            console.error('Error subiendo PDF firmado:', uploadError);
+            throw uploadError;
+          }
+
+          // Obtener URL pública del documento firmado
+          const { data: urlData } = supabase.storage
+            .from('payment-receipts')
+            .getPublicUrl(`signed-documents/${signedFileName}`);
+
+          const signedDocumentUrl = urlData.publicUrl;
+          console.log('PDF firmado subido:', signedDocumentUrl);
+
+          // Actualizar la orden con la URL del documento firmado
+          const { error: updateError } = await supabase
+            .from('orders')
+            .update({
+              signature_status: 'signed',
+              signed_document_url: signedDocumentUrl,
+              signature_completed_at: new Date().toISOString(),
+            })
+            .eq('id', orderId);
+
+          if (updateError) {
+            console.error('Error actualizando orden:', updateError);
+          } else {
+            console.log('Orden actualizada exitosamente como firmada');
+          }
+        } catch (error) {
+          console.error('Error procesando documento firmado:', error);
         }
         break;
       }
@@ -120,8 +187,8 @@ Deno.serve(async (req) => {
     });
 
   } catch (error) {
-    console.log('Error al parsear JSON, probablemente verificación de Dropbox Sign:', error);
-    // If JSON parsing fails, it's likely a test request
+    console.log('Error procesando webhook:', error);
+    // Return 200 para que Dropbox Sign no reintente
     return new Response('Hello API Event Received', {
       status: 200,
       headers: { 'Content-Type': 'text/plain' }
