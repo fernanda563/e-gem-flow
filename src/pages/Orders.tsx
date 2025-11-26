@@ -616,34 +616,39 @@ const Orders = () => {
                 </Select>
               </div>
 
-              <Badge variant="secondary" className="whitespace-nowrap ml-auto">
-                {filteredOrders.length} {filteredOrders.length === 1 ? 'orden' : 'órdenes'}
-              </Badge>
             </div>
           </CardContent>
         </Card>
 
         {/* View Mode Toggle */}
-        <div className="flex items-center justify-end gap-3 mb-4">
-          <span className="text-sm text-muted-foreground">Tipo de vista</span>
+        <div className="flex items-center justify-between gap-3 mb-4">
+          {/* Results counter */}
+          <span className="text-sm">
+            <span className="font-bold">Resultados:</span> {filteredOrders.length}
+          </span>
           
-          <Separator orientation="vertical" className="h-6" />
-          
-          <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as 'cards' | 'table')}>
-            <ToggleGroupItem value="cards" aria-label="Vista de tarjetas">
-              <LayoutGrid className="h-4 w-4" />
-            </ToggleGroupItem>
-            <ToggleGroupItem value="table" aria-label="Vista de tabla">
-              <Table2 className="h-4 w-4" />
-            </ToggleGroupItem>
-          </ToggleGroup>
-          
-          <Separator orientation="vertical" className="h-6" />
-          
-          <Button variant="outline" size="sm">
-            <Printer className="h-4 w-4 mr-2" />
-            Generar PDF de Impresión
-          </Button>
+          {/* View controls */}
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-muted-foreground">Tipo de vista</span>
+            
+            <Separator orientation="vertical" className="h-6" />
+            
+            <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as 'cards' | 'table')}>
+              <ToggleGroupItem value="cards" aria-label="Vista de tarjetas">
+                <LayoutGrid className="h-4 w-4" />
+              </ToggleGroupItem>
+              <ToggleGroupItem value="table" aria-label="Vista de tabla">
+                <Table2 className="h-4 w-4" />
+              </ToggleGroupItem>
+            </ToggleGroup>
+            
+            <Separator orientation="vertical" className="h-6" />
+            
+            <Button variant="outline" size="sm">
+              <Printer className="h-4 w-4 mr-2" />
+              Generar PDF de Impresión
+            </Button>
+          </div>
         </div>
 
         {/* Orders List or Table */}
