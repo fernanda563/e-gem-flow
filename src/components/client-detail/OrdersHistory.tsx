@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Loader2, ChevronDown, FileText, FileSignature, Check, Clock, X, Box, DollarSign, Settings, Link, Trash2, Package, Gem, Wrench, Download } from "lucide-react";
+import { Edit, Loader2, ChevronDown, FileText, FileSignature, Check, Clock, X, Box, DollarSign, Settings, Link, Trash2, Package, Gem, Wrench, Download, Eye } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -258,167 +258,170 @@ export const OrdersHistory = ({ clientId }: OrdersHistoryProps) => {
         {orders.map((order) => (
           <Card key={order.id} className="border-border hover:shadow-md transition-shadow">
             <CardContent className="pt-6">
-              <div className="space-y-3">
-                {/* Header with client name, custom_id and actions dropdown */}
+              <div className="space-y-4">
+                {/* Title and Actions Row */}
                 <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                      {order.custom_id && (
-                        <span className="text-sm font-normal text-muted-foreground">
-                          #{order.custom_id}
-                        </span>
-                      )}
-                    </h3>
-                    
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      {/* Tag Estado de Pago */}
-                      <Badge variant={order.estatus_pago === "liquidado" ? "default" : "secondary"} className="gap-1">
-                        {order.estatus_pago === "liquidado" ? (
-                          <Check className="h-3 w-3" />
-                        ) : (
-                          <DollarSign className="h-3 w-3" />
-                        )}
-                        {order.estatus_pago === "liquidado" ? "Liquidado" : "Anticipo recibido"}
-                      </Badge>
-
-                      {/* Tag Estado de Producción */}
-                      <Badge variant={order.estatus_piedra === "piedra_montada" && order.estatus_montura === "entregado_levant" ? "default" : "outline"} className="gap-1">
-                        {order.estatus_piedra === "piedra_montada" && order.estatus_montura === "entregado_levant" ? (
-                          <Check className="h-3 w-3" />
-                        ) : (
-                          <Settings className="h-3 w-3" />
-                        )}
-                        {order.estatus_piedra === "piedra_montada" && order.estatus_montura === "entregado_levant" 
-                          ? "Producción completada" 
-                          : "En producción"}
-                      </Badge>
-
-                      {/* Tag Estado de Firma */}
-                      <Badge 
-                        variant={
-                          order.signature_status === "signed" ? "default" : 
-                          order.signature_status === "declined" ? "destructive" : 
-                          "outline"
-                        } 
-                        className="gap-1"
-                      >
-                        {order.signature_status === "signed" ? (
-                          <Check className="h-3 w-3" />
-                        ) : order.signature_status === "declined" ? (
-                          <X className="h-3 w-3" />
-                        ) : order.signature_status === "pending" || order.signature_status === "awaiting_signature" ? (
-                          <Clock className="h-3 w-3" />
-                        ) : (
-                          <FileText className="h-3 w-3" />
-                        )}
-                        {order.signature_status === "signed" ? "Firmado" :
-                         order.signature_status === "declined" ? "Rechazado" :
-                         order.signature_status === "pending" || order.signature_status === "awaiting_signature" ? "Por enviar a firma" :
-                         "No firmado"}
-                      </Badge>
-
-                      {/* Tag Estatus de Piedra */}
-                      <Badge variant={order.estatus_piedra === "piedra_montada" ? "default" : "secondary"} className="gap-1">
-                        {order.estatus_piedra === "piedra_montada" ? (
-                          <Check className="h-3 w-3" />
-                        ) : (
-                          <Gem className="h-3 w-3" />
-                        )}
-                        {getStoneStatusLabel(order.estatus_piedra)}
-                      </Badge>
-
-                      {/* Tag Estatus de Montura */}
-                      <Badge variant={order.estatus_montura === "entregado_levant" || order.estatus_montura === "entregado_oyamel" ? "default" : "secondary"} className="gap-1">
-                        {order.estatus_montura === "entregado_levant" || order.estatus_montura === "entregado_oyamel" ? (
-                          <Check className="h-3 w-3" />
-                        ) : (
-                          <Wrench className="h-3 w-3" />
-                        )}
-                        {getMountingStatusLabel(order.estatus_montura)}
-                      </Badge>
-                    </div>
-
-                    {order.stl_file && (
-                      <div className="flex items-center gap-2">
-                        <a
-                          href={`/stl-viewer-fullscreen?url=${encodeURIComponent(order.stl_file.stl_file_url)}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                          }}
-                        >
-                          <Badge 
-                            variant="outline" 
-                            className="text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors flex items-center gap-1"
-                          >
-                            <Box className="h-3 w-3" />
-                            Ver STL
-                          </Badge>
-                        </a>
-                      </div>
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    {order.custom_id && (
+                      <span className="text-sm font-normal text-muted-foreground">
+                        #{order.custom_id}
+                      </span>
                     )}
-                  </div>
+                  </h3>
                   
-                  <div className="flex items-center">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm">
-                          Acciones
-                          <ChevronDown className="h-4 w-4 ml-1" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-56">
-                        <DropdownMenuItem onClick={() => handleEdit(order)}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Editar
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        Acciones
+                        <ChevronDown className="h-4 w-4 ml-1" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuItem onClick={() => handleEdit(order)}>
+                        <Edit className="h-4 w-4 mr-2" />
+                        Editar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleOpenPrint(order.id)}>
+                        <FileText className="h-4 w-4 mr-2" />
+                        Generar PDF
+                      </DropdownMenuItem>
+                      {order.signature_status !== 'signed' && (
+                        <DropdownMenuItem onClick={() => handleSendToSign(order.id)}>
+                          <FileSignature className="h-4 w-4 mr-2" />
+                          {order.signature_status === 'pending' ? 'Reenviar a Firmar' : 'Enviar a Firmar'}
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleOpenPrint(order.id)}>
-                          <FileText className="h-4 w-4 mr-2" />
-                          Generar PDF
+                      )}
+                      {order.signature_status === 'signed' && order.signed_document_url && (
+                        <DropdownMenuItem onClick={() => window.open(order.signed_document_url!, '_blank')}>
+                          <Download className="h-4 w-4 mr-2" />
+                          Descargar documento firmado
                         </DropdownMenuItem>
-                        {order.signature_status !== 'signed' && (
-                          <DropdownMenuItem onClick={() => handleSendToSign(order.id)}>
-                            <FileSignature className="h-4 w-4 mr-2" />
-                            {order.signature_status === 'pending' ? 'Reenviar a Firmar' : 'Enviar a Firmar'}
-                          </DropdownMenuItem>
-                        )}
-                        {order.signature_status === 'signed' && order.signed_document_url && (
-                          <DropdownMenuItem onClick={() => window.open(order.signed_document_url!, '_blank')}>
-                            <Download className="h-4 w-4 mr-2" />
-                            Descargar documento firmado
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem onClick={() => handleOpenStatusDialog(order)}>
-                          <Settings className="h-4 w-4 mr-2" />
-                          Modificar Estatus
+                      )}
+                      <DropdownMenuItem onClick={() => handleOpenStatusDialog(order)}>
+                        <Settings className="h-4 w-4 mr-2" />
+                        Modificar Estatus
+                      </DropdownMenuItem>
+                      {order.internal_order_id ? (
+                        <DropdownMenuItem onClick={() => {
+                          setSelectedInternalOrderId(order.internal_order_id!);
+                          setSupplierPreviewOpen(true);
+                        }}>
+                          <Package className="h-4 w-4 mr-2" />
+                          Ver Orden de Proveedor
                         </DropdownMenuItem>
-                        {order.internal_order_id ? (
-                          <DropdownMenuItem onClick={() => {
-                            setSelectedInternalOrderId(order.internal_order_id!);
-                            setSupplierPreviewOpen(true);
-                          }}>
-                            <Package className="h-4 w-4 mr-2" />
-                            Ver Orden de Proveedor
-                          </DropdownMenuItem>
-                        ) : (
-                          <DropdownMenuItem onClick={() => handleOpenLinkDialog(order)}>
-                            <Link className="h-4 w-4 mr-2" />
-                            Vincular a Orden de Proveedor
-                          </DropdownMenuItem>
-                        )}
-                        {isAdmin() && (
-                          <DropdownMenuItem 
-                            onClick={() => handleOpenDeleteDialog(order)}
-                            className="text-destructive focus:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Eliminar Orden
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+                      ) : (
+                        <DropdownMenuItem onClick={() => handleOpenLinkDialog(order)}>
+                          <Link className="h-4 w-4 mr-2" />
+                          Vincular a Orden de Proveedor
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuItem onClick={() => {
+                        const detailUrl = `/crm/${order.client_id}`;
+                        window.open(detailUrl, '_blank');
+                      }}>
+                        <Eye className="h-4 w-4 mr-2" />
+                        Ver Detalles del Cliente
+                      </DropdownMenuItem>
+                      {isAdmin() && (
+                        <DropdownMenuItem 
+                          onClick={() => handleOpenDeleteDialog(order)}
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Eliminar Orden
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
+                {/* Status Badges Row */}
+                <div className="flex flex-wrap gap-2">
+                  {/* Tag Estado de Pago */}
+                  <Badge variant={order.estatus_pago === "liquidado" ? "default" : "secondary"} className="gap-1">
+                    {order.estatus_pago === "liquidado" ? (
+                      <Check className="h-3 w-3" />
+                    ) : (
+                      <DollarSign className="h-3 w-3" />
+                    )}
+                    {order.estatus_pago === "liquidado" ? "Liquidado" : "Anticipo recibido"}
+                  </Badge>
+
+                  {/* Tag Estado de Producción */}
+                  <Badge variant={order.estatus_piedra === "piedra_montada" && order.estatus_montura === "entregado_levant" ? "default" : "outline"} className="gap-1">
+                    {order.estatus_piedra === "piedra_montada" && order.estatus_montura === "entregado_levant" ? (
+                      <Check className="h-3 w-3" />
+                    ) : (
+                      <Settings className="h-3 w-3" />
+                    )}
+                    {order.estatus_piedra === "piedra_montada" && order.estatus_montura === "entregado_levant" 
+                      ? "Producción completada" 
+                      : "En producción"}
+                  </Badge>
+
+                  {/* Tag Estado de Firma */}
+                  <Badge 
+                    variant={
+                      order.signature_status === "signed" ? "default" : 
+                      order.signature_status === "declined" ? "destructive" : 
+                      "outline"
+                    } 
+                    className="gap-1"
+                  >
+                    {order.signature_status === "signed" ? (
+                      <Check className="h-3 w-3" />
+                    ) : order.signature_status === "declined" ? (
+                      <X className="h-3 w-3" />
+                    ) : order.signature_status === "pending" || order.signature_status === "awaiting_signature" ? (
+                      <Clock className="h-3 w-3" />
+                    ) : (
+                      <FileText className="h-3 w-3" />
+                    )}
+                    {order.signature_status === "signed" ? "Firmado" :
+                     order.signature_status === "declined" ? "Rechazado" :
+                     order.signature_status === "pending" || order.signature_status === "awaiting_signature" ? "Por enviar a firma" :
+                     "No firmado"}
+                  </Badge>
+
+                  {/* Tag Estatus de Piedra */}
+                  <Badge variant={order.estatus_piedra === "piedra_montada" ? "default" : "secondary"} className="gap-1">
+                    {order.estatus_piedra === "piedra_montada" ? (
+                      <Check className="h-3 w-3" />
+                    ) : (
+                      <Gem className="h-3 w-3" />
+                    )}
+                    {getStoneStatusLabel(order.estatus_piedra)}
+                  </Badge>
+
+                  {/* Tag Estatus de Montura */}
+                  <Badge variant={order.estatus_montura === "entregado_levant" || order.estatus_montura === "entregado_oyamel" ? "default" : "secondary"} className="gap-1">
+                    {order.estatus_montura === "entregado_levant" || order.estatus_montura === "entregado_oyamel" ? (
+                      <Check className="h-3 w-3" />
+                    ) : (
+                      <Wrench className="h-3 w-3" />
+                    )}
+                    {getMountingStatusLabel(order.estatus_montura)}
+                  </Badge>
+
+                  {/* STL Badge */}
+                  {order.stl_file && (
+                    <a
+                      href={`/stl-viewer-fullscreen?url=${encodeURIComponent(order.stl_file.stl_file_url)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                      }}
+                    >
+                      <Badge 
+                        variant="outline" 
+                        className="text-xs cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors flex items-center gap-1"
+                      >
+                        <Box className="h-3 w-3" />
+                        Ver STL
+                      </Badge>
+                    </a>
+                  )}
                 </div>
 
                 {/* Product Info */}
