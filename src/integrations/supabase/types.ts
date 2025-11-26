@@ -241,6 +241,7 @@ export type Database = {
           diamante_quilataje: number | null
           disenador_id: string | null
           embedded_sign_url: string | null
+          embedded_sign_url_accessed: boolean | null
           embedded_sign_url_expires_at: string | null
           estatus_montura: string | null
           estatus_pago: string
@@ -283,6 +284,7 @@ export type Database = {
           diamante_quilataje?: number | null
           disenador_id?: string | null
           embedded_sign_url?: string | null
+          embedded_sign_url_accessed?: boolean | null
           embedded_sign_url_expires_at?: string | null
           estatus_montura?: string | null
           estatus_pago?: string
@@ -325,6 +327,7 @@ export type Database = {
           diamante_quilataje?: number | null
           disenador_id?: string | null
           embedded_sign_url?: string | null
+          embedded_sign_url_accessed?: boolean | null
           embedded_sign_url_expires_at?: string | null
           estatus_montura?: string | null
           estatus_pago?: string
