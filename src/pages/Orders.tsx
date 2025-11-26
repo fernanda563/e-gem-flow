@@ -491,6 +491,11 @@ const Orders = () => {
         {/* Search and Filters */}
         <Card className="mb-6">
           <CardContent className="pt-6 space-y-4">
+            {/* Título */}
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold">Filtros Avanzados</h3>
+            </div>
+            
             {/* Fila 1: Búsqueda completa */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
