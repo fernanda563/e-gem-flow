@@ -3,11 +3,35 @@ import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Loader2, AlertCircle, FileSignature } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Sign = () => {
   const [searchParams] = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const markUrlAsAccessed = async (signUrl: string) => {
+    try {
+      // Buscar la orden que tiene esta URL de firma
+      const { data: orders } = await supabase
+        .from('orders')
+        .select('id')
+        .eq('embedded_sign_url', signUrl)
+        .maybeSingle();
+      
+      if (orders) {
+        // Marcar la URL como accedida
+        await supabase
+          .from('orders')
+          .update({ embedded_sign_url_accessed: true })
+          .eq('id', orders.id);
+        
+        console.log("URL marcada como accedida");
+      }
+    } catch (error) {
+      console.error("Error marcando URL como accedida:", error);
+    }
+  };
 
   const openSignatureFlow = () => {
     const encodedUrl = searchParams.get("u");
@@ -20,6 +44,9 @@ const Sign = () => {
 
     try {
       const signUrl = decodeURIComponent(encodedUrl);
+      
+      // Marcar la URL como accedida antes de abrir el modal
+      markUrlAsAccessed(signUrl);
       
       // Importar y usar HelloSign embedded
       import("hellosign-embedded").then((module) => {

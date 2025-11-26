@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import OrderPrintView from "@/components/orders/OrderPrintView";
-import { Loader2, Printer, Download, Send, Copy } from "lucide-react";
+import { Loader2, Printer, Download, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -211,24 +211,8 @@ export const OrderPrintDialog = ({ orderId, open, onOpenChange, autoSendToSign =
 
     try {
       setSendingToSign(true);
-
-      // Verificar si ya existe una URL válida
-      if (
-        order.embedded_sign_url && 
-        order.pending_signature_pdf_url &&
-        isSignUrlValid(order.embedded_sign_url_expires_at)
-      ) {
-        // Generar link de la app, copiar y abrir automáticamente
-        const appLink = generateAppSignLink(order.embedded_sign_url);
-        await navigator.clipboard.writeText(appLink);
-        window.open(appLink, "_blank");
-        
-        toast.success("URL de firma copiada al portapapeles");
-        setSendingToSign(false);
-        return;
-      }
-
-      // Si no hay URL válida, generar nueva
+      
+      // Siempre generar una nueva URL para garantizar el máximo TTL de 60 minutos
       toast.info("Generando documento PDF...");
 
       // Generar y subir PDF a Storage
@@ -240,15 +224,18 @@ export const OrderPrintDialog = ({ orderId, open, onOpenChange, autoSendToSign =
 
       console.log("PDF generado y subido:", pdfUrl);
       
-      // Guardar URL del PDF en la orden
+      // Guardar URL del PDF y resetear el flag de acceso
       await supabase
         .from('orders')
-        .update({ pending_signature_pdf_url: pdfUrl })
+        .update({ 
+          pending_signature_pdf_url: pdfUrl,
+          embedded_sign_url_accessed: false // Reset access flag
+        })
         .eq('id', orderId);
 
-      toast.info("Enviando documento a Dropbox Sign...");
+      toast.info("Generando nueva URL de firma...");
 
-      // Enviar URL del PDF a Dropbox Sign
+      // Enviar URL del PDF a Dropbox Sign para obtener nueva URL de firma
       const { data, error } = await supabase.functions.invoke('send-to-sign', {
         body: { 
           orderId,
@@ -266,7 +253,7 @@ export const OrderPrintDialog = ({ orderId, open, onOpenChange, autoSendToSign =
         const appLink = generateAppSignLink(data.signUrl);
         await navigator.clipboard.writeText(appLink);
         window.open(appLink, "_blank");
-        toast.success("URL de firma copiada al portapapeles");
+        toast.success("URL de firma generada y copiada al portapapeles. Válida por 60 minutos.");
       }
       
       // Refresh order data para obtener nuevo signature_status
@@ -480,25 +467,14 @@ export const OrderPrintDialog = ({ orderId, open, onOpenChange, autoSendToSign =
                       onClick={handleSendToSign} 
                       size="sm"
                       disabled={sendingToSign}
-                      variant={
-                        order.embedded_sign_url && isSignUrlValid(order.embedded_sign_url_expires_at)
-                          ? "outline"
-                          : "default"
-                      }
+                      variant="default"
                     >
                       {sendingToSign ? (
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                       ) : (
-                        order.embedded_sign_url && isSignUrlValid(order.embedded_sign_url_expires_at) ? (
-                          <Copy className="h-4 w-4 mr-2" />
-                        ) : (
-                          <Send className="h-4 w-4 mr-2" />
-                        )
+                        <Send className="h-4 w-4 mr-2" />
                       )}
-                      {order.embedded_sign_url && isSignUrlValid(order.embedded_sign_url_expires_at)
-                        ? "Copiar URL de firma"
-                        : "Generar link de firma"
-                      }
+                      Generar link de firma
                     </Button>
                   )}
                 </>
