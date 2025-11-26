@@ -371,18 +371,6 @@ export const OrdersHistory = ({ clientId }: OrdersHistoryProps) => {
                      "No firmado"}
                   </Badge>
 
-                  {/* Tag Estado de Producción */}
-                  <Badge variant={order.estatus_piedra === "piedra_montada" && order.estatus_montura === "entregado_levant" ? "default" : "outline"} className="gap-1">
-                    {order.estatus_piedra === "piedra_montada" && order.estatus_montura === "entregado_levant" ? (
-                      <Check className="h-3 w-3" />
-                    ) : (
-                      <Settings className="h-3 w-3" />
-                    )}
-                    {order.estatus_piedra === "piedra_montada" && order.estatus_montura === "entregado_levant" 
-                      ? "Producción completada" 
-                      : "En producción"}
-                  </Badge>
-
                   {/* Tag Estatus de Piedra */}
                   <Badge variant={order.estatus_piedra === "piedra_montada" ? "default" : "secondary"} className="gap-1">
                     {order.estatus_piedra === "piedra_montada" ? (
