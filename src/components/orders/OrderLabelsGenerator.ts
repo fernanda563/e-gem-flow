@@ -84,19 +84,19 @@ export const generateOrderLabelsPDF = async (orders: Order[]): Promise<void> => 
       pdf.addPage([51, 25], 'landscape');
     }
 
-    const margin = 2;
-    let yPosition = margin + 3;
-    const lineHeight = 3.5;
+    const margin = 2.5;
+    let yPosition = margin + 2.5;
+    const lineHeight = 3.2;
 
     // Set font
     pdf.setFontSize(7);
     pdf.setFont('helvetica', 'normal');
 
-    // Line 1: Client name
+    // Line 1: Relevée | Client name
     const clientName = order.clients 
       ? `${order.clients.nombre} ${order.clients.apellido}`
       : 'Cliente no especificado';
-    pdf.text(clientName, margin, yPosition);
+    pdf.text(`Relevée | ${clientName}`, margin, yPosition);
     yPosition += lineHeight;
 
     // Line 2: Order ID
@@ -113,18 +113,18 @@ export const generateOrderLabelsPDF = async (orders: Order[]): Promise<void> => 
     // Line 4: Stone info
     const stoneInfo = formatStone(order);
     pdf.text(stoneInfo, margin, yPosition);
-    yPosition += lineHeight + 1;
+    yPosition += lineHeight;
 
-    // Generate and add barcode
+    // Generate and add barcode (moved up with margin)
     const barcodeValue = order.custom_id || order.id;
     const barcodeImage = generateBarcodeImage(barcodeValue);
     
     if (barcodeImage) {
-      const barcodeWidth = 35;
-      const barcodeHeight = 6;
+      const barcodeWidth = 33;
+      const barcodeHeight = 5;
       const barcodeX = (51 - barcodeWidth) / 2; // Center horizontally
       pdf.addImage(barcodeImage, 'PNG', barcodeX, yPosition, barcodeWidth, barcodeHeight);
-      yPosition += barcodeHeight + 1;
+      yPosition += barcodeHeight + 0.5;
     }
 
     // Line 5: Report number (if exists)
