@@ -177,7 +177,7 @@ const CRM = () => {
         </div>
 
         {/* Action Cards */}
-        <div className="flex gap-4 mb-8 flex-wrap">
+        <div className="grid grid-cols-4 gap-4 mb-8">
           <Card 
             className="border-border hover:border-primary transition-colors cursor-pointer"
             onClick={() => handleClientAction()}
