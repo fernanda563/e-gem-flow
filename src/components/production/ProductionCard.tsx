@@ -3,7 +3,33 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { User, ChevronDown, ChevronUp } from "lucide-react";
+import { 
+  User, 
+  ChevronDown, 
+  ChevronUp, 
+  ChevronLeft, 
+  ChevronRight,
+  Search,
+  ShoppingCart,
+  Truck,
+  Package,
+  Building,
+  Palette,
+  Wrench,
+  CheckCircle,
+  Clock,
+  Pencil,
+  Printer,
+  RefreshCw,
+  Timer,
+  Flame,
+  Check,
+  PackageSearch,
+  PackageCheck,
+  MapPin,
+  X,
+  type LucideIcon
+} from "lucide-react";
 import { StoneTimeline } from "./StoneTimeline";
 import { MountingTimeline } from "./MountingTimeline";
 import { AssignmentDialog } from "./AssignmentDialog";
@@ -28,6 +54,17 @@ const STONE_STATUS_LABELS: Record<string, string> = {
   "piedra_con_disenador": "Con diseñador",
   "piedra_en_taller": "En taller",
   "piedra_montada": "Piedra montada",
+};
+
+const STONE_STATUS_ICONS: Record<string, LucideIcon> = {
+  "en_busqueda": Search,
+  "piedra_comprada": ShoppingCart,
+  "piedra_transito_pobox": Truck,
+  "piedra_pobox": Package,
+  "piedra_levant": Building,
+  "piedra_con_disenador": Palette,
+  "piedra_en_taller": Wrench,
+  "piedra_montada": CheckCircle,
 };
 
 const MOUNTING_STATUSES = [
@@ -62,6 +99,22 @@ const MOUNTING_STATUS_LABELS: Record<string, string> = {
   "no_aplica": "No aplica",
 };
 
+const MOUNTING_STATUS_ICONS: Record<string, LucideIcon> = {
+  "en_espera": Clock,
+  "proceso_diseno": Pencil,
+  "impresion_modelo": Printer,
+  "reimpresion_modelo": RefreshCw,
+  "traslado_modelo": Truck,
+  "espera_taller": Timer,
+  "proceso_vaciado": Flame,
+  "pieza_terminada_taller": Check,
+  "proceso_recoleccion": PackageSearch,
+  "recolectado": PackageCheck,
+  "entregado_oyamel": MapPin,
+  "entregado_levant": MapPin,
+  "no_aplica": X,
+};
+
 interface ProductionOrder {
   id: string;
   custom_id?: string;
@@ -86,6 +139,23 @@ interface ProductionCardProps {
   order: ProductionOrder;
   onUpdate: () => void;
 }
+
+const getStepInfo = (
+  currentStatus: string, 
+  statuses: string[], 
+  labels: Record<string, string>
+) => {
+  const currentIndex = statuses.indexOf(currentStatus);
+  const safeIndex = currentIndex === -1 ? 0 : currentIndex;
+  
+  return {
+    previous: safeIndex > 0 ? labels[statuses[safeIndex - 1]] : null,
+    current: labels[currentStatus] || labels[statuses[0]],
+    next: safeIndex < statuses.length - 1 ? labels[statuses[safeIndex + 1]] : null,
+    currentIndex: safeIndex,
+    totalSteps: statuses.length
+  };
+};
 
 export const ProductionCard = ({ order, onUpdate }: ProductionCardProps) => {
   const [expanded, setExpanded] = useState(false);
@@ -118,6 +188,21 @@ export const ProductionCard = ({ order, onUpdate }: ProductionCardProps) => {
     order.estatus_montura,
     MOUNTING_STATUSES.filter((s) => s !== "no_aplica")
   );
+
+  const stoneStepInfo = getStepInfo(
+    order.estatus_piedra || "en_busqueda",
+    STONE_STATUSES,
+    STONE_STATUS_LABELS
+  );
+
+  const mountingStepInfo = getStepInfo(
+    order.estatus_montura || "en_espera",
+    MOUNTING_STATUSES.filter((s) => s !== "no_aplica"),
+    MOUNTING_STATUS_LABELS
+  );
+
+  const StoneIcon = STONE_STATUS_ICONS[order.estatus_piedra || "en_busqueda"] || Search;
+  const MountingIcon = MOUNTING_STATUS_ICONS[order.estatus_montura || "en_espera"] || Clock;
 
   return (
     <>
@@ -164,31 +249,62 @@ export const ProductionCard = ({ order, onUpdate }: ProductionCardProps) => {
           </div>
 
           {/* Progress Indicators */}
-          <div className="space-y-3 mt-4">
-            <div className="space-y-1">
+          <div className="space-y-4 mt-4">
+            {/* Stone Progress */}
+            <div className="space-y-2">
               <div className="flex justify-between items-center text-xs">
                 <span className="text-muted-foreground">Progreso Piedra</span>
-                <span className="font-medium">{Math.round(stoneProgress)}%</span>
+                <span className="font-medium">
+                  {stoneStepInfo.currentIndex + 1}/{stoneStepInfo.totalSteps} · {Math.round(stoneProgress)}%
+                </span>
               </div>
               <Progress value={stoneProgress} className="h-2" />
-              <div className="flex items-center gap-1.5 text-xs mt-1">
-                <span className="text-primary">📍</span>
-                <span className="text-muted-foreground font-medium">
-                  {STONE_STATUS_LABELS[order.estatus_piedra || "en_busqueda"]}
-                </span>
+              <div className="space-y-1 text-xs mt-2">
+                {stoneStepInfo.previous && (
+                  <div className="flex items-center gap-1.5 text-muted-foreground/60">
+                    <ChevronLeft className="h-3 w-3" />
+                    <span>{stoneStepInfo.previous}</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-1.5 text-primary font-medium">
+                  <StoneIcon className="h-3.5 w-3.5" />
+                  <span>{stoneStepInfo.current}</span>
+                </div>
+                {stoneStepInfo.next && (
+                  <div className="flex items-center gap-1.5 text-muted-foreground/60">
+                    <ChevronRight className="h-3 w-3" />
+                    <span>{stoneStepInfo.next}</span>
+                  </div>
+                )}
               </div>
             </div>
-            <div className="space-y-1">
+
+            {/* Mounting Progress */}
+            <div className="space-y-2">
               <div className="flex justify-between items-center text-xs">
                 <span className="text-muted-foreground">Progreso Montura</span>
-                <span className="font-medium">{Math.round(mountingProgress)}%</span>
+                <span className="font-medium">
+                  {mountingStepInfo.currentIndex + 1}/{mountingStepInfo.totalSteps} · {Math.round(mountingProgress)}%
+                </span>
               </div>
               <Progress value={mountingProgress} className="h-2" />
-              <div className="flex items-center gap-1.5 text-xs mt-1">
-                <span className="text-primary">📍</span>
-                <span className="text-muted-foreground font-medium">
-                  {MOUNTING_STATUS_LABELS[order.estatus_montura || "en_espera"]}
-                </span>
+              <div className="space-y-1 text-xs mt-2">
+                {mountingStepInfo.previous && (
+                  <div className="flex items-center gap-1.5 text-muted-foreground/60">
+                    <ChevronLeft className="h-3 w-3" />
+                    <span>{mountingStepInfo.previous}</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-1.5 text-primary font-medium">
+                  <MountingIcon className="h-3.5 w-3.5" />
+                  <span>{mountingStepInfo.current}</span>
+                </div>
+                {mountingStepInfo.next && (
+                  <div className="flex items-center gap-1.5 text-muted-foreground/60">
+                    <ChevronRight className="h-3 w-3" />
+                    <span>{mountingStepInfo.next}</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
