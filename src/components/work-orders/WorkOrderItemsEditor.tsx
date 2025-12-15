@@ -12,7 +12,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { Plus, Trash2 } from "lucide-react";
-import { WorkConcept, WORK_AREA_LABELS } from "@/types/work-concepts";
+import { WorkConcept, WORK_AREA_LABELS, UNIT_MEASURES } from "@/types/work-concepts";
 
 interface WorkOrderItemData {
   id?: string;
@@ -148,8 +148,8 @@ export const WorkOrderItemsEditor = ({
                       <div className="grid grid-cols-3 gap-3 text-sm">
                         {/* Cantidad */}
                         <div className="space-y-1">
-                          <Label className="text-xs capitalize">
-                            {concept?.unidad_medida || "Cantidad"}
+                          <Label className="text-xs">
+                            {UNIT_MEASURES.find(u => u.value === concept?.unidad_medida)?.label || "Cantidad"}
                           </Label>
                           <Input
                             type="number"
