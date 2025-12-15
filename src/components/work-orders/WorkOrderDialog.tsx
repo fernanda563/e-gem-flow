@@ -72,7 +72,7 @@ interface WorkOrderItemData {
   concept_name?: string;
 }
 
-type AssignmentType = 'taller' | 'diseñador' | 'ninguno';
+type AssignmentType = 'taller' | 'diseñador';
 
 export const WorkOrderDialog = ({
   open,
@@ -87,7 +87,7 @@ export const WorkOrderDialog = ({
   const [designers, setDesigners] = useState<Designer[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [items, setItems] = useState<WorkOrderItemData[]>([]);
-  const [assignmentType, setAssignmentType] = useState<AssignmentType>('ninguno');
+  const [assignmentType, setAssignmentType] = useState<AssignmentType>('taller');
 
   const [formData, setFormData] = useState({
     client_id: "",
@@ -127,19 +127,17 @@ export const WorkOrderDialog = ({
     });
     setItems([]);
     setStep(1);
-    setAssignmentType('ninguno');
+    setAssignmentType('taller');
   };
 
   const loadWorkOrderData = async () => {
     if (!workOrder) return;
 
     // Determine assignment type based on existing data
-    if (workOrder.workshop_id) {
-      setAssignmentType('taller');
-    } else if (workOrder.designer_id) {
+    if (workOrder.designer_id) {
       setAssignmentType('diseñador');
     } else {
-      setAssignmentType('ninguno');
+      setAssignmentType('taller');
     }
 
     setFormData({
@@ -397,17 +395,13 @@ export const WorkOrderDialog = ({
             </div>
 
             {/* Assignment Type Radio Buttons */}
-            <div className="space-y-3">
-              <Label>Asignar a</Label>
+            <div className="space-y-2">
+              <Label>Asignar a *</Label>
               <RadioGroup 
                 value={assignmentType} 
                 onValueChange={(value) => handleAssignmentTypeChange(value as AssignmentType)}
-                className="flex flex-col space-y-2"
+                className="flex flex-row space-x-6"
               >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="ninguno" id="ninguno" />
-                  <Label htmlFor="ninguno" className="font-normal cursor-pointer">Sin asignar</Label>
-                </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="taller" id="taller" />
                   <Label htmlFor="taller" className="font-normal cursor-pointer">Taller externo</Label>
@@ -424,16 +418,15 @@ export const WorkOrderDialog = ({
               <div className="space-y-2">
                 <Label>Taller</Label>
                 <Select
-                  value={formData.workshop_id || "none"}
+                  value={formData.workshop_id}
                   onValueChange={(value) =>
-                    setFormData({ ...formData, workshop_id: value === "none" ? "" : value })
+                    setFormData({ ...formData, workshop_id: value })
                   }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Seleccionar taller" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Sin asignar</SelectItem>
+                <SelectContent>
                     {workshops.map((workshop) => (
                       <SelectItem key={workshop.id} value={workshop.id}>
                         {workshop.nombre}
@@ -449,16 +442,15 @@ export const WorkOrderDialog = ({
               <div className="space-y-2">
                 <Label>Diseñador</Label>
                 <Select
-                  value={formData.designer_id || "none"}
+                  value={formData.designer_id}
                   onValueChange={(value) =>
-                    setFormData({ ...formData, designer_id: value === "none" ? "" : value })
+                    setFormData({ ...formData, designer_id: value })
                   }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Seleccionar diseñador" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Sin asignar</SelectItem>
+                <SelectContent>
                     {designers.map((designer) => (
                       <SelectItem key={designer.id} value={designer.id}>
                         {designer.nombre}
